@@ -366,8 +366,8 @@ void do_usart(void)
 #endif // _POWER_CHANGEABLE
 						case 0x0010:
 						g_bias_pwm_multiplier = (uint16_t)value;
-						if (1000 > g_bias_pwm_multiplier || g_bias_pwm_multiplier > 1500)
-							g_bias_pwm_multiplier = 1200;
+						if (MIN_BIAS_PWM_MULTIPLIER > g_bias_pwm_multiplier || g_bias_pwm_multiplier > MAX_BIAS_PWM_MULTIPLIER)
+							g_bias_pwm_multiplier = DEFAULT_BIAS_PWM_MULTIPLIER;
 						eeprom_write_word(BIAS_PWM_MULTIPLIER_ADDR, g_bias_pwm_multiplier);
 						break;
 #ifdef _SUPERMAX_BIAS_CHANGEABLE

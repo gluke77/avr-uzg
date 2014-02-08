@@ -468,10 +468,11 @@ void menu_power_pwm_shift(void)
 
 	if (KEY_PRESSED(KEY_LEFT))
 	{
-		if (g_power_pwm_shift < 0)
+		if (g_power_pwm_shift <= 0 || g_max_power_pwm - g_power_pwm_shift < g_power_pwm_base)
 			g_power_pwm_shift = 0;
 		else
 			g_power_pwm_shift--;
+
 			
 		CLEAR_KEY_PRESSED(KEY_LEFT);
 	}
@@ -1264,7 +1265,7 @@ void menu_bias_pwm_multiplier(void)
 {
 	if (KEY_PRESSED(KEY_LEFT))
 	{
-		if (g_bias_pwm_multiplier > 200)
+		if (g_bias_pwm_multiplier > MIN_BIAS_PWM_MULTIPLIER)
 			g_bias_pwm_multiplier--;
 
 		CLEAR_KEY_PRESSED(KEY_LEFT);
@@ -1272,7 +1273,7 @@ void menu_bias_pwm_multiplier(void)
 
 	if (KEY_PRESSED(KEY_RIGHT))
 	{
-		if (2000 > g_bias_pwm_multiplier)
+		if (MAX_BIAS_PWM_MULTIPLIER > g_bias_pwm_multiplier)
 			g_bias_pwm_multiplier++;
 
 		CLEAR_KEY_PRESSED(KEY_RIGHT);
@@ -1482,7 +1483,6 @@ void storeToEE(void)
 	eeprom_write_word(TEMP2_ALARM_ADDR, g_temp_alarm[1]);
 	eeprom_write_word(TEMP2_STOP_ADDR, g_temp_stop[1]);
 
-
 	eeprom_write_byte(POWER_PWM_BASE_ADDR, g_power_pwm_base);
 	eeprom_write_byte(POWER_PWM_SHIFT_ADDR, g_power_pwm_shift);
 	eeprom_write_byte(MAX_POWER_PWM_ADDR, g_max_power_pwm);
@@ -1527,7 +1527,7 @@ void reset_settings(void)
 	g_bias_pwm_base = 50;
 	g_bias_pwm_shift = 0;
 	
-	g_int_timeout = 200;
+	g_int_timeout = DEFAULT_INT_TIMEOUT;
 	g_keep_mode = KEEP_CURRENT;
 
 #ifdef _STARTBUTTON_ENABLED
@@ -1579,9 +1579,9 @@ void reset_settings(void)
 
 void check_settings(void)
 {
-	if (1000 > g_bias_pwm_multiplier || g_bias_pwm_multiplier > 1500)
+	if (MIN_BIAS_PWM_MULTIPLIER > g_bias_pwm_multiplier || g_bias_pwm_multiplier > MAX_BIAS_PWM_MULTIPLIER)
 	{	
-		g_bias_pwm_multiplier = 1200;
+		g_bias_pwm_multiplier = DEFAULT_BIAS_PWM_MULTIPLIER;
 		eeprom_write_word(BIAS_PWM_MULTIPLIER_ADDR, g_bias_pwm_multiplier);
 	}
 	
@@ -1708,7 +1708,7 @@ void check_settings(void)
 #ifdef _INT_TIMEOUT_CHANGEABLE
 	if (g_int_timeout > 1000)
 #endif // _INT_TIMEOUT_CHANGEABLE
-		g_int_timeout = 200;
+		g_int_timeout = DEFAULT_INT_TIMEOUT;
 	
 #ifdef _KEEP_CHANGEABLE
 	if (g_keep_mode >= KEEP_COUNT)
