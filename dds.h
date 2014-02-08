@@ -53,8 +53,8 @@ extern	uint32_t	g_dds_freq;
 #define DDS_MIN_FREQ	(15000)
 
 #ifdef _NARROW_FREQ
-	#define DDS_MAX_FREQ	(22000)
-	#define DDS_MIN_FREQ	(19000)
+	#define DDS_MAX_FREQ	(20500)
+	#define DDS_MIN_FREQ	(18500)
 #endif // _NARROW_FREQ
 
 

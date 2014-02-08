@@ -80,10 +80,14 @@ void menu_items_init(void)
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_freq_lower;
 
 #ifdef _BIAS_CHANGEABLE
+#ifdef _MAX_BIAS_CHANGEABLE
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_max_bias_pwm;
+#endif // _MAX_BIAS_CHANGEABLE
+#ifdef _MIN_BIAS_CHANGEABLE
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_min_bias_pwm;	
+#endif // _MIN_BIAS_CHANGEABLE	
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_bias_pwm_base;
-#endif _BIAS_CHANGEABLE
+#endif // _BIAS_CHANGEABLE
 #ifdef _BIAS_SHIFT_CHANGEABLE
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_bias_pwm_shift;
 #endif // _BIAS_SHIFT_CHANGEABLE
@@ -97,8 +101,10 @@ void menu_items_init(void)
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_power_pwm_shift;
 #endif // _POWER_CHANGEABLE
 
+#ifdef _INT_TIMEOUT_CHANGEABLE
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_int_timeout; //-
-
+#endif // _INT_TIMEOUT_CHANGEABLE
+	
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_pfc_mode;
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_autosearch_mode;
 
@@ -371,6 +377,8 @@ void menu_bias_pwm_base(void)
 			g_bias_pwm_base = g_max_bias_pwm - g_bias_pwm_shift;
 		else
 			g_bias_pwm_base ++;
+		
+		normalize_bias_pwm_base();
 		
 		CLEAR_KEY_PRESSED(KEY_RIGHT);
 	}
@@ -1614,8 +1622,8 @@ void check_settings(void)
 		eeprom_write_word(SUPERMIN_FREQ_ADDR, (uint16_t)g_freq_supermin);
 	}
 #ifdef _NARROW_FREQ
-	g_freq_supermax = 22000;
-	g_freq_supermin = 19000; 
+	g_freq_supermax = DDS_MAX_FREQ;
+	g_freq_supermin = DDS_MIN_FREQ; 
 #endif // _NARROW_FREQ
 	
 	if (g_freq_upper > g_freq_supermax)
@@ -1633,16 +1641,20 @@ void check_settings(void)
 	if (g_dds_freq > g_freq_upper || g_dds_freq < g_freq_lower)
 		dds_setfreq((g_freq_upper + g_freq_lower) / 2);
 
-	if (g_supermax_bias_pwm > 100)
+#ifdef _SUPERMAX_BIAS_CHANGEABLE		
+	if (g_supermax_bias_pwm > SUPERMAX_BIAS_PWM)
+#endif // _SUPERMAX_BIAS_CHANGEABLE
 	{
-		g_supermax_bias_pwm = 100;
+		g_supermax_bias_pwm = SUPERMAX_BIAS_PWM;
 		eeprom_write_byte(SUPERMAX_BIAS_PWM_ADDR, g_supermax_bias_pwm);
 	}
 
 	while (bias_pwm_to_current(g_max_bias_pwm) > g_supermax_bias_pwm / 10.)
 			g_max_bias_pwm--;
-			
+
+#ifdef _MIN_BIAS_CHANGEABLE		
 	if (g_min_bias_pwm > g_max_bias_pwm)
+#endif _MIN_BIAS_CHANGEABLE		
 		g_min_bias_pwm = 10;
 
 	if (g_min_bias_pwm > g_max_bias_pwm)
@@ -1654,9 +1666,15 @@ void check_settings(void)
 	if (g_bias_pwm_base < g_min_bias_pwm)
 		g_bias_pwm_base = g_min_bias_pwm;
 
+#ifdef _BIAS_SHIFT_CHANGEABLE		
 	if (g_bias_pwm_shift > g_max_bias_pwm - g_bias_pwm_base)
 		g_bias_pwm_shift = g_max_bias_pwm - g_bias_pwm_base;
-
+#else
+	g_bias_pwm_shift = 0;	
+#endif // _BIAS_SHIFT_CHANGEABLE
+	
+	normalize_bias_pwm_base();
+		
 #ifdef _POWER_CHANGEABLE		
 	if (POWER_PWM_MAX < g_max_power_pwm || POWER_PWM_MIN > g_max_power_pwm)
 		g_max_power_pwm = POWER_PWM_MAX;
@@ -1682,10 +1700,14 @@ void check_settings(void)
 	g_power_pwm_shift = 0;
 #endif // _POWER_CHANGEABLE
 		
+#ifdef _INT_TIMEOUT_CHANGEABLE
 	if (g_int_timeout > 1000)
+#endif // _INT_TIMEOUT_CHANGEABLE
 		g_int_timeout = 200;
 	
+#ifdef _KEEP_CHANGEABLE
 	if (g_keep_mode >= KEEP_COUNT)
+#endif _KEEP_CHANGEABLE
 		g_keep_mode = KEEP_CURRENT;
 	
 	if (g_autosearch_mode >= AUTOSEARCH_COUNT)

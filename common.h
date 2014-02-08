@@ -9,7 +9,7 @@
 #include <inttypes.h>
 #include <util/delay.h>
 
-#define FW_VERSION	("20110709")
+#define FW_VERSION	("20110819")
 
 #define TRUE 1
 #define FALSE 0
@@ -213,9 +213,13 @@ extern	char	g_din[DIN_SIZE];
 
 #define _NARROW_FREQ
 #define _BIAS_CHANGEABLE
-#define _BIAS_SHIFT_CHANGEABLE
-#define _POWER_CHANGEABLE
-#define _KEEP_CHANGEABLE
+#undef _BIAS_SHIFT_CHANGEABLE
+#undef _MAX_BIAS_CHANGEABLE
+#undef _MIN_BIAS_CHANGEABLE
+#undef _INT_TIMEOUT_CHANGEABLE
+#undef _SUPERMAX_BIAS_CHANGEABLE
+#undef _POWER_CHANGEABLE
+#undef _KEEP_CHANGEABLE
 #undef _ADC_SHOW
 #undef _STARTBUTTON_ENABLED
 
