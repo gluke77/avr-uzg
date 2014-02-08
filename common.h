@@ -9,7 +9,7 @@
 #include <inttypes.h>
 #include <util/delay.h>
 
-#define FW_VERSION	("20120512")
+#define FW_VERSION	("20121102")
 
 #define TRUE 1
 #define FALSE 0
@@ -232,8 +232,8 @@ extern	char	g_din[DIN_SIZE];
 #define DEFAULT_BIAS_PWM_MULTIPLIER	(1500)
 
 // PWM (current) settings
-#define SUPERMAX_BIAS_PWM		(70)
-#define MAX_BIAS_PWM_BASE		(6.)
+#define SUPERMAX_BIAS_PWM		(100)
+#define MAX_BIAS_PWM_BASE		(8.)
 #define MIN_BIAS_PWM			(10)
 #define DEFAULT_BIAS_PWM_BASE	(50)
 #define DEFAULT_BIAS_PWM_SHIFT	(0)
