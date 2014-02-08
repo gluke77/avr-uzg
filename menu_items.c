@@ -1520,9 +1520,9 @@ void reset_settings(void)
 	g_bias_pwm_shift = 0;
 	
 	g_int_timeout = 200;
-	g_keep_mode = KEEP_CURRENT;
+	g_keep_mode = KEEP_OFF;
 	
-	g_autosearch_mode = AUTOSEARCH_ON;
+	g_autosearch_mode = AUTOSEARCH_OFF;
 	g_fault_interrupts_mode = FAULT_INTERRUPTS_OFF;
 	
 	g_keep_freq_step = 5;
@@ -1549,7 +1549,7 @@ void reset_settings(void)
 //	adc_set_delay(3, 1);
 //	adc_set_count(3, 400);
 	
-	set_pfc_mode(PFC_AUTO);
+	set_pfc_mode(PFC_OFF);
 	
 	g_power_pwm_base = 95;
 	g_power_pwm_shift = 0;
@@ -1686,10 +1686,10 @@ void check_settings(void)
 		g_int_timeout = 200;
 	
 	if (g_keep_mode >= KEEP_COUNT)
-		g_keep_mode = KEEP_CURRENT;
+		g_keep_mode = KEEP_OFF;
 	
 	if (g_autosearch_mode >= AUTOSEARCH_COUNT)
-		g_autosearch_mode = AUTOSEARCH_ON;
+		g_autosearch_mode = AUTOSEARCH_OFF;
 		
 	g_fault_interrupts_mode = FAULT_INTERRUPTS_OFF; //-!
 	

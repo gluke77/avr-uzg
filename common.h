@@ -9,7 +9,7 @@
 #include <inttypes.h>
 #include <util/delay.h>
 
-#define FW_VERSION	("20110521")
+#define FW_VERSION	("20110708")
 
 #define TRUE 1
 #define FALSE 0
@@ -217,6 +217,6 @@ extern	char	g_din[DIN_SIZE];
 #define _POWER_CHANGEABLE
 #define _KEEP_CHANGEABLE
 #undef _ADC_SHOW
-#undef _STARTBUTTON_ENABLED
+#define _STARTBUTTON_ENABLED
 
 #endif /* __COMMON_H_INCLUDED_*/
