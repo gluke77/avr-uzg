@@ -1151,7 +1151,7 @@ void menu_max_bias_pwm(void)
 
 	if (KEY_PRESSED(KEY_RIGHT))
 	{
-		if (255 > g_max_bias_pwm)
+		if ((bias_pwm_to_current(g_max_bias_pwm + 1) < g_supermax_bias_pwm / 10.) && (g_max_bias_pwm < 255))
 			g_max_bias_pwm++;
 
 		CLEAR_KEY_PRESSED(KEY_RIGHT);
@@ -1276,6 +1276,8 @@ void loadFromEE(void)
 	for (i = 0; i < DIN_SIZE; i++)
 		g_din[i] = eeprom_read_byte(DIN_ADDR + i);
 	g_din[DIN_SIZE - 1] = 0;
+	
+	g_supermax_bias_pwm = eeprom_read_byte(SUPERMAX_BIAS_PWM_ADDR);
 }
 
 void storeToEE(void)
@@ -1370,6 +1372,36 @@ void reset_settings(void)
 	//g_bias_pwm_multiplier = 600;
 	//g_adc_multiplier = 50;
 	//g_din[0] = 0;
+	
+	if (0xFF == g_adc_multiplier)
+	{
+		g_adc_multiplier = 55;
+		eeprom_write_byte(ADC_MULTIPLIER_ADDR, g_adc_multiplier);
+	}
+	
+	if (0xFFFF == g_bias_pwm_multiplier)
+	{
+		g_bias_pwm_multiplier = 1000;
+		eeprom_write_word(BIAS_PWM_MULTIPLIER_ADDR, g_bias_pwm_multiplier);
+	}
+	
+	if (0xFF == g_supermax_bias_pwm)
+	{
+		g_supermax_bias_pwm = 100;
+		eeprom_write_byte(SUPERMAX_BIAS_PWM_ADDR, g_supermax_bias_pwm);
+	}
+
+	while (bias_pwm_to_current(g_max_bias_pwm) > g_supermax_bias_pwm / 10.)
+			g_max_bias_pwm--;
+			
+	if (g_min_bias_pwm > g_max_bias_pwm)
+		g_min_bias_pwm = g_max_bias_pwm;
+		
+	if (g_bias_pwm_base > g_max_bias_pwm)
+		g_bias_pwm_base = g_max_bias_pwm;
+		
+	if (g_bias_pwm_shift > g_max_bias_pwm - g_bias_pwm_base)
+		g_bias_pwm_shift = g_max_bias_pwm - g_bias_pwm_base;
 }
 
 void menu_int_timeout(void)

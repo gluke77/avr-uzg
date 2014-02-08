@@ -9,7 +9,7 @@
 #include <inttypes.h>
 #include <util/delay.h>
 
-#define FW_VERSION	("20090531")
+#define FW_VERSION	("20090601")
 
 #define TRUE 1
 #define FALSE 0
@@ -177,5 +177,6 @@ extern	char	g_din[DIN_SIZE];
 #define BIAS_PWM_MULTIPLIER_ADDR	(44)
 #define ADC_MULTIPLIER_ADDR			(46)
 #define DIN_ADDR					(47)
+#define SUPERMAX_BIAS_PWM_ADDR		(63)
 
 #endif /* __COMMON_H_INCLUDED_*/

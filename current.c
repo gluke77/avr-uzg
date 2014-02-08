@@ -10,11 +10,10 @@ uint8_t		g_max_bias_pwm;
 uint8_t		g_min_bias_pwm;
 
 uint16_t	g_bias_pwm_multiplier = 600;
+uint8_t		g_supermax_bias_pwm = 100;
 
 void bias_pwm_init(void)
 {
-
-
 	TCCR1A = 0x00;
 	TCCR1B = 0x00;
 	TCCR1C = 0x00;
@@ -81,4 +80,21 @@ float bias_pwm_to_current(uint8_t pwm)
 {
 	return pwm * (g_bias_pwm_multiplier / 100.) / 255;
 }
-
+/*
+void set_supermax_bias_pwm(uint8_t supermax)
+{
+	g_supermax_bias_pwm = supermax;
+	
+	while (bias_pwm_to_current(g_max_bias_pwm) > g_supermax_bias_pwm / 10.)
+		g_max_bias_pwm--;
+	
+	if (g_min_bias_pwm > g_max_bias_pwm)
+		g_min_bias_pwm = g_max_bias_pwm;
+		
+	if (g_bias_pwm_base > g_max_bias_pwm)
+		g_bias_pwm_base = g_max_bias_pwm;
+		
+	if (g_bias_pwm_shift > g_max_bias_pwm - g_bias_pwm_base)
+		g_bias_pwm_shift = g_max_bias_pwm - g_bias_pwm_base;
+}
+*/

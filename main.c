@@ -268,8 +268,13 @@ void do_usart(void)
 						g_max_bias_pwm = (uint8_t)value;
 						if (g_max_bias_pwm < g_bias_pwm_base + g_bias_pwm_shift)
 							g_max_bias_pwm = g_bias_pwm_base + g_bias_pwm_shift;
-						if (255 < g_max_bias_pwm)
+	
+						if (g_max_bias_pwm > 255)
 							g_max_bias_pwm = 255;
+	
+						while (bias_pwm_to_current(g_max_bias_pwm) > g_supermax_bias_pwm / 10.)
+							g_max_bias_pwm--;
+						
 						if ((IS_UZG_RUN) && (g_max_bias_pwm < g_bias_pwm))
 							set_bias_pwm(g_max_bias_pwm);
 						break;
@@ -329,7 +334,11 @@ void do_usart(void)
 						g_adc_multiplier = (uint8_t)value;
 						eeprom_write_byte(ADC_MULTIPLIER_ADDR, g_adc_multiplier);
 						break;
-
+					case 0x0012:
+						g_supermax_bias_pwm = (uint8_t)value;
+						eeprom_write_byte(SUPERMAX_BIAS_PWM_ADDR, g_supermax_bias_pwm);
+						break;
+				
 					case 0x0020:
 						g_din[0] = (char)value;
 						eeprom_write_byte(DIN_ADDR + 0, g_din[0]);
@@ -466,6 +475,12 @@ void do_usart(void)
 					cmd.addr = 1;
 					
 					cmd.value[0] = (uint16_t)g_adc_multiplier;
+				}
+				else if (0x0012 == cmd.addr)
+				{
+					cmd.addr = 1;
+					
+					cmd.value[0] = (uint16_t)g_supermax_bias_pwm;
 				}
 				else if (0x0020 == cmd.addr)
 				{
