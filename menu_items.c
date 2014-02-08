@@ -114,8 +114,8 @@ void menu_items_init(void)
 
 #ifdef _KEEP_CHANGEABLE
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_keep_mode;
-	menu_items[MENU_MODE_SETTINGS][idx++] = menu_keep_step;
-	menu_items[MENU_MODE_SETTINGS][idx++] = menu_keep_delta;	
+//	menu_items[MENU_MODE_SETTINGS][idx++] = menu_keep_step;
+//	menu_items[MENU_MODE_SETTINGS][idx++] = menu_keep_delta;	
 #endif // _KEEP_CHANGEABLE
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_temp_alarm;	
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_temp_stop;	
