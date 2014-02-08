@@ -10,7 +10,7 @@ uint8_t		g_max_bias_pwm;
 uint8_t		g_min_bias_pwm;
 
 uint16_t	g_bias_pwm_multiplier = 600;
-uint8_t		g_supermax_bias_pwm = SUPERMAX_BIAS_PWM;
+uint8_t		g_supermax_bias_pwm = 100;
 
 void bias_pwm_init(void)
 {
@@ -101,9 +101,3 @@ void set_supermax_bias_pwm(uint8_t supermax)
 		g_bias_pwm_shift = g_max_bias_pwm - g_bias_pwm_base;
 }
 */
-
-void normalize_bias_pwm_base(void)
-{
-	while (bias_pwm_to_current(g_bias_pwm_base) > MAX_BIAS_PWM_BASE)
-		g_bias_pwm_base--;
-}

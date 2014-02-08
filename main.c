@@ -156,9 +156,13 @@ int main(void)
 		else if (g_temp_stop[1] < temp_value(1))
 			sprintf(lcd_line0, "OVERHEAT 2          ");
 		else
-			sprintf(lcd_line0, "  UZG-%s PFC-%s  ", 
-				(IS_UZG_RUN)?"ON  ":"OFF ", (IS_PFC_RUN)?"ON  ":"OFF ");
+			sprintf(lcd_line0, "  UZG-%s          ", 
+				(IS_UZG_RUN)?"ON  ":"OFF ");
 
+//			sprintf(lcd_line0, "  UZG-%s PFC-%s  ", 
+//				(IS_UZG_RUN)?"ON  ":"OFF ", (IS_PFC_RUN)?"ON  ":"OFF ");
+				
+				
 		do_startbutton();
 		do_lcd();
 		do_temp();
@@ -267,9 +271,6 @@ void do_usart(void)
 							g_bias_pwm_base = g_max_bias_pwm - g_bias_pwm_shift;
 						if (g_bias_pwm_base < g_min_bias_pwm)
 							g_bias_pwm_base = g_min_bias_pwm;
-
-						normalize_bias_pwm_base();
-
 						break;
 #ifdef _BIAS_SHIFT_CHANGEABLE
 					case 0x0006:	// set current pwm shift
@@ -280,7 +281,6 @@ void do_usart(void)
 							g_bias_pwm_shift = 0;
 						break;
 #endif // _BIAS_SHIFT_CHANGEABLE						
-#ifdef _MAX_BIAS_CHANGEABLE
 					case 0x0007:	// set max current pwm
 						g_max_bias_pwm = (uint8_t)value;
 						if (g_max_bias_pwm < g_bias_pwm_base + g_bias_pwm_shift)
@@ -295,8 +295,6 @@ void do_usart(void)
 						if ((IS_UZG_RUN) && (g_max_bias_pwm < g_bias_pwm))
 							set_bias_pwm(g_max_bias_pwm);
 						break;
-#endif // _MAX_BIAS_CHANGEABLE
-#ifdef _MIN_BIAS_CHANGEABLE
 					case 0x0008:	// set min current pwm
 						g_min_bias_pwm = (uint8_t)value;
 						if (g_bias_pwm_base < g_min_bias_pwm)
@@ -304,7 +302,6 @@ void do_usart(void)
 						if ((IS_UZG_RUN) && (g_bias_pwm < g_min_bias_pwm))
 							set_bias_pwm(g_min_bias_pwm);
 						break;
-#endif // _MIN_BIAS_CHANGEABLE
 					case 0x0009:	// set freq step
 						g_keep_freq_step = value;
 						if (10 < g_keep_freq_step)
@@ -370,14 +367,12 @@ void do_usart(void)
 							g_bias_pwm_multiplier = 1200;
 						eeprom_write_word(BIAS_PWM_MULTIPLIER_ADDR, g_bias_pwm_multiplier);
 						break;
-#ifdef _SUPERMAX_BIAS_CHANGEABLE
 					case 0x0011:
 						g_supermax_bias_pwm = (uint8_t)value;
-						if (g_supermax_bias_pwm > SUPERMAX_BIAS_PWM)
-							g_supermax_bias_pwm = SUPERMAX_BIAS_PWM;
+						if (g_supermax_bias_pwm > 100)
+							g_supermax_bias_pwm = 100;
 						eeprom_write_byte(SUPERMAX_BIAS_PWM_ADDR, g_supermax_bias_pwm);
 						break;
-#endif // _SUPERMAX_BIAS_CHANGEABLE
 					case 0x0012:
 						g_adc_bias_multiplier = (uint8_t)value;
 						if (20 > g_adc_bias_multiplier || g_adc_bias_multiplier > 60)
