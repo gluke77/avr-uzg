@@ -9,6 +9,8 @@ uint8_t		g_bias_pwm_shift;
 uint8_t		g_max_bias_pwm;
 uint8_t		g_min_bias_pwm;
 
+uint16_t	g_bias_pwm_multiplier = 600;
+
 void bias_pwm_init(void)
 {
 
@@ -77,6 +79,6 @@ void set_bias_off(void)
 
 float bias_pwm_to_current(uint8_t pwm)
 {
-	return pwm * 6. / 255;
+	return pwm * (g_bias_pwm_multiplier / 100.) / 255;
 }
 

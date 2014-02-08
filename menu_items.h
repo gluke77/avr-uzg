@@ -45,6 +45,7 @@ void menu_bias_pwm_base(void);
 void menu_bias_pwm_shift(void);
 void menu_max_bias_pwm(void);
 void menu_min_bias_pwm(void);
+void menu_bias_pwm_multiplier(void);
 
 void menu_power_pwm_base(void);
 void menu_power_pwm_shift(void);

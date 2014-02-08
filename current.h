@@ -10,6 +10,7 @@ extern uint8_t		g_bias_pwm_base;
 extern uint8_t		g_bias_pwm_shift;
 extern uint8_t		g_max_bias_pwm;
 extern uint8_t		g_min_bias_pwm;
+extern uint16_t		g_bias_pwm_multiplier;
 
 void bias_pwm_init(void);
 void set_bias_pwm(uint8_t);

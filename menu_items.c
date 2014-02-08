@@ -71,6 +71,7 @@ void menu_items_init(void)
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_min_bias_pwm;	
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_bias_pwm_base;
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_bias_pwm_shift;
+	menu_items[MENU_MODE_SETTINGS][idx++] = menu_bias_pwm_multiplier;
 	
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_max_power_pwm;
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_min_power_pwm;
@@ -1087,6 +1088,29 @@ void menu_keep_delta(void)
 	menu_common();
 }
 
+void menu_bias_pwm_multiplier(void)
+{
+	if (KEY_PRESSED(KEY_LEFT))
+	{
+		if (g_bias_pwm_multiplier > 200)
+			g_bias_pwm_multiplier--;
+
+		CLEAR_KEY_PRESSED(KEY_LEFT);
+	}
+
+	if (KEY_PRESSED(KEY_RIGHT))
+	{
+		if (2000 > g_bias_pwm_multiplier)
+			g_bias_pwm_multiplier++;
+
+		CLEAR_KEY_PRESSED(KEY_RIGHT);
+	}
+		
+	sprintf(lcd_line1, "BIAS PWM MULT= %-5d", g_bias_pwm_multiplier);
+	
+	menu_common();
+}
+
 void menu_max_bias_pwm(void)
 {
 	if (KEY_PRESSED(KEY_LEFT))
@@ -1212,6 +1236,7 @@ void menu_reset_settings(void)
 #define MIN_POWER_PWM_ADDR			(41)
 #define AUTOSEARCH_MODE_ADDR		(42)
 #define FAULT_INTERRUPTS_MODE_ADDR	(43)
+#define BIAS_PWM_MULTIPLIER_ADDR	(44)
 
 void loadFromEE(void)
 {
@@ -1253,6 +1278,8 @@ void loadFromEE(void)
 	g_min_power_pwm = eeprom_read_byte(MIN_POWER_PWM_ADDR);
 	g_autosearch_mode = eeprom_read_byte(AUTOSEARCH_MODE_ADDR);
 	fault_interrupts_init(eeprom_read_byte(FAULT_INTERRUPTS_MODE_ADDR));
+
+	g_bias_pwm_multiplier = eeprom_read_word(BIAS_PWM_MULTIPLIER_ADDR);
 }
 
 void storeToEE(void)
@@ -1292,6 +1319,8 @@ void storeToEE(void)
 	eeprom_write_byte(MIN_POWER_PWM_ADDR, g_min_power_pwm);
 	eeprom_write_byte(AUTOSEARCH_MODE_ADDR, g_autosearch_mode);
 	eeprom_write_byte(FAULT_INTERRUPTS_MODE_ADDR, g_fault_interrupts_mode);
+	
+	eeprom_write_word(BIAS_PWM_MULTIPLIER_ADDR, g_bias_pwm_multiplier);
 }
 
 void reset_settings(void)
@@ -1340,6 +1369,8 @@ void reset_settings(void)
 
 	g_max_power_pwm = 99;
 	g_min_power_pwm = 69;
+	
+	g_bias_pwm_multiplier = 600;
 }
 
 void menu_int_timeout(void)
