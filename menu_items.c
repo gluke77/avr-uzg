@@ -468,11 +468,10 @@ void menu_power_pwm_shift(void)
 
 	if (KEY_PRESSED(KEY_LEFT))
 	{
-		if (g_power_pwm_shift <= 0 || g_max_power_pwm - g_power_pwm_shift < g_power_pwm_base)
+		if (g_power_pwm_shift < 0)
 			g_power_pwm_shift = 0;
 		else
 			g_power_pwm_shift--;
-
 			
 		CLEAR_KEY_PRESSED(KEY_LEFT);
 	}
