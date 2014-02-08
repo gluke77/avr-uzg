@@ -22,6 +22,7 @@ void menu_search(void);
 void menu_search_auto(void);
 void menu_amp(void);
 void menu_temp(void);
+void menu_temp2(void);
 
 void menu_freq_upper(void);
 void menu_freq_lower(void);

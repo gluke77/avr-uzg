@@ -57,6 +57,7 @@ void menu_items_init(void)
 	menu_items[MENU_MODE_WORK][idx++] = menu_current;	
 	menu_items[MENU_MODE_WORK][idx++] = menu_amp;
 	menu_items[MENU_MODE_WORK][idx++] = menu_temp;
+	menu_items[MENU_MODE_WORK][idx++] = menu_temp2;
 //	menu_items[MENU_MODE_WORK][idx++] = menu_monitor;
 	menu_items[MENU_MODE_WORK][idx++] = menu_stop_mode;
 	menu_items[MENU_MODE_WORK][idx++] = menu_adc0;
@@ -227,7 +228,14 @@ void menu_amp(void)
 
 void menu_temp(void)
 {
-	sprintf(lcd_line1, "TEMPERATURE:%.1fC               ", temp_value());
+	sprintf(lcd_line1, "TEMP.1:%.1fC               ", temp_value(0));
+	
+	menu_common();
+}
+
+void menu_temp2(void)
+{
+	sprintf(lcd_line1, "TEMP.2:%.1fC               ", temp_value(1));
 	
 	menu_common();
 }

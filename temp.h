@@ -12,7 +12,10 @@
 extern uint16_t g_temp_alarm;
 extern uint16_t g_temp_stop;
 
-float	temp_value(void);
+//extern uint16_t g_temp_alarm2;
+//extern uint16_t g_temp_stop2;
+
+float	temp_value(int /* sensor_id */);
 void	do_temp(void);
 void	temp_init(void);
 

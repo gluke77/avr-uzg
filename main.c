@@ -147,7 +147,7 @@ int main(void)
 			sprintf(lcd_line0, "FREQUENCY OVERLOAD  ");
 		else if (TEST_FAULT_BIAS)
 			sprintf(lcd_line0, "CURRENT OVERLOAD    ");
-		else if (g_temp_stop < temp_value())
+		else if (g_temp_stop < temp_value(0) || g_temp_stop < temp_value(1))
 			sprintf(lcd_line0, "OVERHEAT            ");
 		else
 			sprintf(lcd_line0, "  UZG-%s PFC-%s  ", 
@@ -476,7 +476,7 @@ void do_usart(void)
 					cmd.value[1] = (uint16_t)g_dds_freq;
 					cmd.value[2] = (uint16_t)g_bias_pwm;
 					cmd.value[3] = (uint16_t)g_power_pwm;
-					cmd.value[4] = (int16_t)(temp_value() * 10);
+					cmd.value[4] = (int16_t)(((temp_value(0)>temp_value(1))?temp_value(0):temp_value(1)) * 10);
 					cmd.value[5] = (uint16_t)adc_mean_value(ADC_BIAS_CURRENT);
 					cmd.value[6] = (uint16_t)adc_mean_value(ADC_FEEDBACK_CURRENT);
 					cmd.value[7] = (uint16_t)adc_mean_value(ADC_AMP); // feedback coil
@@ -612,7 +612,7 @@ void start(void)
 		return;
 	}
 	
-	if (g_temp_alarm < temp_value())
+	if (g_temp_alarm < temp_value(0) || g_temp_alarm < temp_value(1))
 	{
 		sprintf(lcd_line0, "OVERHEAT            ");
 		do_lcd();
