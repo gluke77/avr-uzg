@@ -59,10 +59,14 @@ void menu_items_init(void)
 	menu_items[MENU_MODE_WORK][idx++] = menu_temp2;
 //	menu_items[MENU_MODE_WORK][idx++] = menu_monitor;
 	menu_items[MENU_MODE_WORK][idx++] = menu_stop_mode;
+
+#ifdef _ADC_SHOW
 	menu_items[MENU_MODE_WORK][idx++] = menu_adc0;
 	menu_items[MENU_MODE_WORK][idx++] = menu_adc1;
 	menu_items[MENU_MODE_WORK][idx++] = menu_adc2;
 //	menu_items[MENU_MODE_WORK][idx++] = menu_adc3;
+#endif // _ADC_SHOW
+
 	menu_items[MENU_MODE_WORK][idx++] = menu_version;
 	menu_items[MENU_MODE_WORK][idx++] = menu_din;
 
