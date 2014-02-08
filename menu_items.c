@@ -1422,17 +1422,11 @@ void reset_settings(void)
 		eeprom_write_word(SUPERMAX_FREQ_ADDR, (uint16_t)g_freq_supermax);
 	}
 
-	if (0xFFFF == g_freq_supermin)
+	if ((0xFFFF == g_freq_supermin) || (g_freq_supermin > g_freq_supermax))
 	{
 		g_freq_supermin = DDS_MIN_FREQ;
 		eeprom_write_word(SUPERMIN_FREQ_ADDR, (uint16_t)g_freq_supermin);
 	}
-	
-	if (g_freq_supermin > g_freq_supermax)
-	{
-		g_freq_supermin = g_freq_supermax;
-		eeprom_write_word(SUPERMIN_FREQ_ADDR, (uint16_t)g_freq_supermin);
-	}	
 
 	g_freq_upper = 21400;
 
