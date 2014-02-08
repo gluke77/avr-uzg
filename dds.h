@@ -40,10 +40,22 @@ void dds_init(void);
 void dds_setmultiplier(uint32_t);
 void dds_setfreq(uint32_t);
 
+extern 	uint32_t	g_freq_supermax;
+extern	uint32_t	g_freq_supermin;
+
+extern	uint32_t	g_freq_upper;
+extern	uint32_t	g_freq_lower;
+
 extern	uint32_t	g_dds_mult;
 extern	uint32_t	g_dds_freq;
 
 #define DDS_MAX_FREQ	(40000)
 #define DDS_MIN_FREQ	(15000)
+
+#ifdef _NARROW_FREQ
+	#define DDS_MAX_FREQ	(22500)
+	#define DDS_MIN_FREQ	(17000)
+#endif // _NARROW_FREQ
+
 
 #endif /* __DDS_H_INCLUDED_ */

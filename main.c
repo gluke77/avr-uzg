@@ -73,6 +73,7 @@ uint8_t	sendByte;
 uint8_t	tmp;
 
 void reset_settings(void);
+void check_settings(void);
 
 int main(void)
 {
@@ -92,6 +93,7 @@ int main(void)
 	menu_items_init();
 
 	loadFromEE();
+	check_settings();
 	
 	usart1_init(USART_RS485_SLAVE, g_baudrate);
 	usart1_setprotocol_modbus();
@@ -238,6 +240,8 @@ void do_usart(void)
 						g_freq_upper = (uint32_t)value;
 						if (g_freq_lower > g_freq_upper)
 							g_freq_upper = g_freq_lower;
+						if (g_freq_supermax < g_freq_upper)
+							g_freq_upper = g_freq_supermax;
 						if (DDS_MAX_FREQ < g_freq_upper)
 							g_freq_upper = DDS_MAX_FREQ;
 						if (g_dds_freq > g_freq_upper)
@@ -247,6 +251,8 @@ void do_usart(void)
 						g_freq_lower = (uint32_t)value;
 						if (g_freq_lower > g_freq_upper)
 							g_freq_lower = g_freq_upper;
+						if (g_freq_supermin > g_freq_lower)
+							g_freq_lower = g_freq_supermin;
 						if (DDS_MIN_FREQ > g_freq_lower)
 							g_freq_lower = DDS_MIN_FREQ;
 						if (g_freq_lower > g_dds_freq)
@@ -259,13 +265,15 @@ void do_usart(void)
 						if (g_bias_pwm_base < g_min_bias_pwm)
 							g_bias_pwm_base = g_min_bias_pwm;
 						break;
+#ifdef _BIAS_SHIFT_CHANGEABLE
 					case 0x0006:	// set current pwm shift
 						g_bias_pwm_shift = (uint8_t)value;
-						if (g_max_bias_pwm - g_bias_pwm_shift < g_bias_pwm_step)
+						if (g_max_bias_pwm < g_bias_pwm_shift + g_bias_pwm_base)
 							g_bias_pwm_shift = g_max_bias_pwm - g_bias_pwm_base;
 						if (g_bias_pwm_shift < 0)
 							g_bias_pwm_shift = 0;
 						break;
+#endif // _BIAS_SHIFT_CHANGEABLE						
 					case 0x0007:	// set max current pwm
 						g_max_bias_pwm = (uint8_t)value;
 						if (g_max_bias_pwm < g_bias_pwm_base + g_bias_pwm_shift)
@@ -291,16 +299,20 @@ void do_usart(void)
 						g_keep_freq_step = value;
 						if (10 < g_keep_freq_step)
 							g_keep_freq_step = 10;
+						if (0 > g_keep_freq_step)
+							g_keep_freq_step = 0;
 						break;
 					case 0x000A:	// set freq delta
 						g_keep_freq_max_delta = value;
 						if (10 < g_keep_freq_max_delta)
 							g_keep_freq_max_delta = 10;
+						if (0 > g_keep_freq_max_delta)
+							g_keep_freq_max_delta = 0;
 						break;
 					case 0x000B:	// set stop temp
 						g_temp_stop[0] = value;
 						if (g_temp_stop[0] < g_temp_alarm[0])
-							g_temp_stop[0] = g_temp_alarm[0];
+							g_temp_alarm[0] = g_temp_stop[0];
 						break;
 					case 0x000C:	// set alarm temp
 						g_temp_alarm[0] = value;
@@ -311,7 +323,7 @@ void do_usart(void)
 					case 0x100B:	// set stop temp
 						g_temp_stop[1] = value;
 						if (g_temp_stop[1] < g_temp_alarm[1])
-							g_temp_stop[1] = g_temp_alarm[1];
+							g_temp_alarm[1] = g_temp_stop[1];
 						break;
 					case 0x100C:	// set alarm temp
 						g_temp_alarm[1] = value;
@@ -319,7 +331,7 @@ void do_usart(void)
 							g_temp_alarm[1] = g_temp_stop[1];
 						break;
 
-
+#ifdef _POWER_CHANGEABLE
 					case 0x000D:	// set power pwm
 						if (value < g_min_power_pwm)
 							value = g_min_power_pwm;
@@ -336,36 +348,49 @@ void do_usart(void)
 						break;
 					case 0x000F:	// set power pwm shift
 						g_power_pwm_shift = (uint8_t)value;
-						if (g_max_power_pwm - g_power_pwm_shift < g_power_pwm_step)
+						if (g_max_power_pwm - g_power_pwm_shift < g_power_pwm_base)
 							g_power_pwm_shift = g_max_power_pwm - g_power_pwm_base;
 						if (g_power_pwm_shift < 0)
 							g_power_pwm_shift = 0;
 						break;
-					case 0x0010:
+#endif // _POWER_CHANGEABLE
+						case 0x0010:
 						g_bias_pwm_multiplier = (uint16_t)value;
+						if (1000 > g_bias_pwm_multiplier || g_bias_pwm_multiplier > 1500)
+							g_bias_pwm_multiplier = 1200;
 						eeprom_write_word(BIAS_PWM_MULTIPLIER_ADDR, g_bias_pwm_multiplier);
 						break;
 					case 0x0011:
 						g_supermax_bias_pwm = (uint8_t)value;
+						if (g_supermax_bias_pwm > 100)
+							g_supermax_bias_pwm = 100;
 						eeprom_write_byte(SUPERMAX_BIAS_PWM_ADDR, g_supermax_bias_pwm);
 						break;
 					case 0x0012:
 						g_adc_bias_multiplier = (uint8_t)value;
+						if (20 > g_adc_bias_multiplier || g_adc_bias_multiplier > 60)
+							g_adc_bias_multiplier = 55;
 						eeprom_write_byte(ADC_BIAS_MULTIPLIER_ADDR, g_adc_bias_multiplier);
 						break;
 					case 0x0013:
 						g_adc_feedback_multiplier = (uint8_t)value;
+						if (20 > g_adc_feedback_multiplier || g_adc_feedback_multiplier > 60)
+							g_adc_feedback_multiplier = 30;
 						eeprom_write_byte(ADC_FEEDBACK_MULTIPLIER_ADDR, g_adc_feedback_multiplier);
 						break;
 
 					case 0x0014:
 						g_freq_supermax = (uint32_t)value;
+						if (DDS_MAX_FREQ < g_freq_supermax)
+							g_freq_supermax = DDS_MAX_FREQ;
 						if (g_freq_supermax < g_freq_upper)
 							g_freq_supermax = g_freq_upper;
 						eeprom_write_word(SUPERMAX_FREQ_ADDR, (uint16_t)g_freq_supermax);
 						break;
 					case 0x0015:
 						g_freq_supermin = (uint32_t)value;
+						if (DDS_MIN_FREQ > g_freq_supermin)
+							g_freq_supermin = DDS_MIN_FREQ;
 						if (g_freq_supermin > g_freq_lower)
 							g_freq_supermin = g_freq_lower;
 						eeprom_write_word(SUPERMIN_FREQ_ADDR, (uint16_t)g_freq_supermin);
@@ -374,14 +399,20 @@ void do_usart(void)
 						
 					case 0x001C:
 						adc[0].bias = (int16_t)value;
+						if (adc[0].bias > 520 || adc[0].bias < 500)
+							adc[0].bias = 511;
 						eeprom_write_word(ADC0_BIAS_ADDR, adc[0].bias);
 						break;
 					case 0x001D:
 						adc[1].bias = (int16_t)value;
+						if (adc[1].bias > 520 || adc[1].bias < 500)
+							adc[1].bias = 511;
 						eeprom_write_word(ADC1_BIAS_ADDR, adc[1].bias);
 						break;
 					case 0x001E:
 						adc[2].bias = (int16_t)value;
+						if (adc[2].bias > 520 || adc[2].bias < 500)
+							adc[2].bias = 511;
 						eeprom_write_word(ADC2_BIAS_ADDR, adc[2].bias);
 						break;
 /*					case 0x001F:
@@ -455,6 +486,7 @@ void do_usart(void)
 						break;
 
 					case 0xFFFF:
+						check_settings();
 						storeToEE();
 						break;
 					default:

@@ -21,12 +21,6 @@
 #define FAST_MODE_DELAY		(500)
 #define FAST_MODE_STEP		(20)
 
-uint32_t	g_freq_supermax;
-uint32_t	g_freq_supermin;
-
-uint32_t	g_freq_upper;
-uint32_t	g_freq_lower;
-
 uint16_t	g_int_timeout;
 
 uint8_t		g_menu_search_auto_idx;
@@ -43,6 +37,7 @@ void stop(stop_mode_e);
 void loadFromEE(void);
 void storeToEE(void);
 void reset_settings(void);
+void check_settings(void);
 void fault_interrupts_init(fault_interrupts_mode_e);
 
 void menu_items_init(void)
@@ -52,7 +47,9 @@ void menu_items_init(void)
 	idx = 0; 
 //	menu_items[MENU_MODE_WORK][idx++] = menu_freq;
 	menu_items[MENU_MODE_WORK][idx++] = menu_search;
+#ifdef _POWER_CHANGEABLE
 	menu_items[MENU_MODE_WORK][idx++] = menu_power;
+#endif // _POWER_CHANGEABLE
 //	menu_items[MENU_MODE_WORK][idx++] = menu_mult;	
 	menu_items[MENU_MODE_WORK][idx++] = menu_current;	
 	menu_items[MENU_MODE_WORK][idx++] = menu_amp;
@@ -79,37 +76,43 @@ void menu_items_init(void)
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_max_bias_pwm;
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_min_bias_pwm;	
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_bias_pwm_base;
+#ifdef _BIAS_SHIFT_CHANGEABLE
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_bias_pwm_shift;
+#endif // _BIAS_SHIFT_CHANGEABLE
 	//menu_items[MENU_MODE_SETTINGS][idx++] = menu_bias_pwm_multiplier;
 	//menu_items[MENU_MODE_SETTINGS][idx++] = menu_adc_multiplier;
-	
+
+#ifdef _POWER_CHANGEABLE	
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_max_power_pwm;
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_min_power_pwm;
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_power_pwm_base;
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_power_pwm_shift;
+#endif // _POWER_CHANGEABLE
 
-	menu_items[MENU_MODE_SETTINGS][idx++] = menu_int_timeout;
+//-	menu_items[MENU_MODE_SETTINGS][idx++] = menu_int_timeout;
 
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_pfc_mode;
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_autosearch_mode;
+#ifdef _KEEP_CHANGEABLE
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_keep_mode;
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_keep_step;
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_keep_delta;	
+#endif // _KEEP_CHANGEABLE
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_temp_alarm;	
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_temp_stop;	
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_temp2_alarm;	
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_temp2_stop;	
-	menu_items[MENU_MODE_SETTINGS][idx++] = menu_fault_interrupts;	
+//-	menu_items[MENU_MODE_SETTINGS][idx++] = menu_fault_interrupts;	
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_modbus_id;	
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_baudrate;	
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_store_settings;
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_reset_settings;
 
-	menu_items[MENU_MODE_SETTINGS][idx++] = menu_adc0_count;
+//-	menu_items[MENU_MODE_SETTINGS][idx++] = menu_adc0_count;
 //	menu_items[MENU_MODE_SETTINGS][idx++] = menu_adc0_delay;
-	menu_items[MENU_MODE_SETTINGS][idx++] = menu_adc1_count;
+//-	menu_items[MENU_MODE_SETTINGS][idx++] = menu_adc1_count;
 //	menu_items[MENU_MODE_SETTINGS][idx++] = menu_adc1_delay;
-	menu_items[MENU_MODE_SETTINGS][idx++] = menu_adc2_count;
+//-	menu_items[MENU_MODE_SETTINGS][idx++] = menu_adc2_count;
 //	menu_items[MENU_MODE_SETTINGS][idx++] = menu_adc2_delay;
 //	menu_items[MENU_MODE_SETTINGS][idx++] = menu_adc3_count;
 //	menu_items[MENU_MODE_SETTINGS][idx++] = menu_adc3_delay;
@@ -347,20 +350,20 @@ void menu_bias_pwm_base(void)
 
 	if (KEY_PRESSED(KEY_RIGHT))
 	{
-		if (g_max_bias_pwm - g_bias_pwm_shift - g_bias_pwm_base < g_bias_pwm_step)
+		if (g_max_bias_pwm - g_bias_pwm_shift < g_bias_pwm_base)
 			g_bias_pwm_base = g_max_bias_pwm - g_bias_pwm_shift;
 		else
-			g_bias_pwm_base += g_bias_pwm_step;
+			g_bias_pwm_base ++;
 		
 		CLEAR_KEY_PRESSED(KEY_RIGHT);
 	}
 
 	if (KEY_PRESSED(KEY_LEFT))
 	{
-		if (g_bias_pwm_base < g_min_bias_pwm + g_bias_pwm_step)
+		if (g_bias_pwm_base < g_min_bias_pwm)
 			g_bias_pwm_base = g_min_bias_pwm;
 		else
-			g_bias_pwm_base -= g_bias_pwm_step;
+			g_bias_pwm_base --;
 			
 		CLEAR_KEY_PRESSED(KEY_LEFT);
 	}
@@ -375,10 +378,10 @@ void menu_bias_pwm_shift(void)
 
 	if (KEY_PRESSED(KEY_RIGHT))
 	{
-		if (g_max_bias_pwm - g_bias_pwm_shift - g_bias_pwm_base < g_bias_pwm_step)
+		if (g_max_bias_pwm - g_bias_pwm_shift < g_bias_pwm_base)
 			g_bias_pwm_shift = g_max_bias_pwm - g_bias_pwm_base;
 		else
-			g_bias_pwm_shift += g_bias_pwm_step;
+			g_bias_pwm_shift++;
 		
 		CLEAR_KEY_PRESSED(KEY_RIGHT);
 	}
@@ -388,7 +391,7 @@ void menu_bias_pwm_shift(void)
 		if (g_bias_pwm_shift < g_bias_pwm_step)
 			g_bias_pwm_shift = 0;
 		else
-			g_bias_pwm_shift -= g_bias_pwm_step;
+			g_bias_pwm_shift--;
 			
 		CLEAR_KEY_PRESSED(KEY_LEFT);
 	}
@@ -402,20 +405,20 @@ void menu_power_pwm_base(void)
 
 	if (KEY_PRESSED(KEY_RIGHT))
 	{
-		if (g_max_power_pwm - g_power_pwm_shift - g_power_pwm_base < g_power_pwm_step)
+		if (g_max_power_pwm - g_power_pwm_shift < g_power_pwm_base)
 			g_power_pwm_base = g_max_power_pwm - g_power_pwm_shift;
 		else
-			g_power_pwm_base += g_power_pwm_step;
+			g_power_pwm_base++;
 		
 		CLEAR_KEY_PRESSED(KEY_RIGHT);
 	}
 
 	if (KEY_PRESSED(KEY_LEFT))
 	{
-		if (g_power_pwm_base < g_min_power_pwm + g_power_pwm_step)
+		if (g_power_pwm_base < g_min_power_pwm)
 			g_power_pwm_base = g_min_power_pwm;
 		else
-			g_power_pwm_base -= g_power_pwm_step;
+			g_power_pwm_base--;
 			
 		CLEAR_KEY_PRESSED(KEY_LEFT);
 	}
@@ -430,20 +433,20 @@ void menu_power_pwm_shift(void)
 
 	if (KEY_PRESSED(KEY_RIGHT))
 	{
-		if (g_max_power_pwm - g_power_pwm_shift - g_power_pwm_base < g_power_pwm_step)
+		if (g_max_power_pwm - g_power_pwm_shift < g_power_pwm_base)
 			g_power_pwm_shift = g_max_power_pwm - g_power_pwm_base;
 		else
-			g_power_pwm_shift += g_power_pwm_step;
+			g_power_pwm_shift++;
 		
 		CLEAR_KEY_PRESSED(KEY_RIGHT);
 	}
 
 	if (KEY_PRESSED(KEY_LEFT))
 	{
-		if (g_power_pwm_shift < g_power_pwm_step)
+		if (g_power_pwm_shift < 0)
 			g_power_pwm_shift = 0;
 		else
-			g_power_pwm_shift -= g_power_pwm_step;
+			g_power_pwm_shift--;
 			
 		CLEAR_KEY_PRESSED(KEY_LEFT);
 	}
@@ -1286,6 +1289,7 @@ void menu_store_settings(void)
 {
 	if (KEY_PRESSED(KEY_ENTER))
 	{
+		check_settings();
 		storeToEE();
 		sprintf(lcd_line1, "SETTINGS SAVED      ");
 		do_lcd();
@@ -1304,6 +1308,7 @@ void menu_reset_settings(void)
 	if (KEY_PRESSED(KEY_ENTER))
 	{
 		reset_settings();
+		check_settings();
 		storeToEE();
 		sprintf(lcd_line1, "DEFAULT SETTINGS    ");
 		do_lcd();
@@ -1433,19 +1438,8 @@ void storeToEE(void)
 
 void reset_settings(void)
 {
-	if (0xFFFF == g_freq_supermax)
-	{
-		g_freq_supermax = DDS_MAX_FREQ;
-		eeprom_write_word(SUPERMAX_FREQ_ADDR, (uint16_t)g_freq_supermax);
-	}
 
-	if ((0xFFFF == g_freq_supermin) || (g_freq_supermin > g_freq_supermax))
-	{
-		g_freq_supermin = DDS_MIN_FREQ;
-		eeprom_write_word(SUPERMIN_FREQ_ADDR, (uint16_t)g_freq_supermin);
-	}
-
-	g_freq_upper = 21400;
+	g_freq_upper = 19900;
 
 	if (g_freq_upper > g_freq_supermax)
 		g_freq_upper = g_freq_supermax;
@@ -1453,7 +1447,7 @@ void reset_settings(void)
 	if (g_freq_upper < g_freq_supermin)
 		g_freq_upper = g_freq_supermin;
 		
-	g_freq_lower = 21250;
+	g_freq_lower = 19600;
 
 	if (g_freq_lower < g_freq_supermin)
 		g_freq_lower = g_freq_supermin;
@@ -1463,22 +1457,26 @@ void reset_settings(void)
 
 	dds_setfreq((g_freq_upper + g_freq_lower) / 2);
 
+	g_max_bias_pwm = 255;
+
+	while (bias_pwm_to_current(g_max_bias_pwm) > g_supermax_bias_pwm / 10.)
+			g_max_bias_pwm--;
+
+	g_min_bias_pwm = 10;
+
 	g_bias_pwm_base = 50;
 	g_bias_pwm_shift = 0;
 	
 	g_int_timeout = 200;
-	g_keep_mode = KEEP_OFF;
+	g_keep_mode = KEEP_CURRENT;
 	
-	g_autosearch_mode = AUTOSEARCH_OFF;
+	g_autosearch_mode = AUTOSEARCH_ON;
 	g_fault_interrupts_mode = FAULT_INTERRUPTS_OFF;
 	
 	g_keep_freq_step = 5;
 	g_keep_freq_max_delta = 1;
 	
-	g_max_bias_pwm = 255;
-	g_min_bias_pwm = 10;
-	
-	g_baudrate = 115200;
+	g_baudrate = 9600;
 	g_modbus_id = 1;
 	
 	g_temp_alarm[0] = 75;
@@ -1486,7 +1484,6 @@ void reset_settings(void)
 	
 	g_temp_alarm[1] = 60;
 	g_temp_stop[1] = 65;
-
 
 	adc_set_delay(0, 1);
 	adc_set_count(0, 200);
@@ -1507,77 +1504,176 @@ void reset_settings(void)
 
 	g_max_power_pwm = 99;
 	g_min_power_pwm = 69;
-	
-	//g_bias_pwm_multiplier = 600;
-	//g_adc_multiplier = 50;
-	//g_din[0] = 0;
-/*	
-	if (0xFF == g_adc_multiplier)
-	{
-		g_adc_multiplier = 55;
-		eeprom_write_byte(ADC_MULTIPLIER_ADDR, g_adc_multiplier);
-	}
-*/	
-	if (0xFFFF == g_bias_pwm_multiplier)
-	{
-		g_bias_pwm_multiplier = 1000;
+}
+
+void check_settings(void)
+{
+	if (1000 > g_bias_pwm_multiplier || g_bias_pwm_multiplier > 1500)
+	{	
+		g_bias_pwm_multiplier = 1200;
 		eeprom_write_word(BIAS_PWM_MULTIPLIER_ADDR, g_bias_pwm_multiplier);
 	}
 	
-	if (0xFF == g_supermax_bias_pwm)
+	if (20 > g_adc_bias_multiplier || g_adc_bias_multiplier > 60)
 	{
-		g_supermax_bias_pwm = 100;
-		eeprom_write_byte(SUPERMAX_BIAS_PWM_ADDR, g_supermax_bias_pwm);
+		g_adc_bias_multiplier = 55;
+		eeprom_write_byte(ADC_BIAS_MULTIPLIER_ADDR, g_adc_bias_multiplier);
 	}
-	
-	if (0xFFFF == adc[0].bias)
+		
+	if (20 > g_adc_feedback_multiplier || g_adc_feedback_multiplier > 60)
+	{
+		g_adc_feedback_multiplier = 30;
+		eeprom_write_byte(ADC_FEEDBACK_MULTIPLIER_ADDR, g_adc_feedback_multiplier);
+	}
+
+	if (adc[0].bias > 520 || adc[0].bias < 500)
 	{
 		adc[0].bias = 511;
 		eeprom_write_word(ADC0_BIAS_ADDR, adc[0].bias);
 	}
 
-	if (0xFFFF == adc[1].bias)
+	if (adc[1].bias > 520 || adc[1].bias < 500)
 	{
 		adc[1].bias = 511;
 		eeprom_write_word(ADC1_BIAS_ADDR, adc[1].bias);
 	}
 
-	if (0xFFFF == adc[2].bias)
+	if (adc[2].bias > 520 || adc[2].bias < 500)
 	{
 		adc[2].bias = 511;
 		eeprom_write_word(ADC2_BIAS_ADDR, adc[2].bias);
 	}
-/*
-	if (0xFFFF == adc[3].bias)
-	{
-		adc[3].bias = 511;
-		eeprom_write_word(ADC3_BIAS_ADDR, adc[3].bias);
-	}
-*/
-	if (0xFF == g_adc_bias_multiplier)
-	{
-		g_adc_bias_multiplier = 55;
-		eeprom_write_byte(ADC_BIAS_MULTIPLIER_ADDR, g_adc_bias_multiplier);
-	}
 	
-	if (0xFF == g_adc_feedback_multiplier)
+	if (DDS_MAX_FREQ < g_freq_supermax || DDS_MIN_FREQ > g_freq_supermax)
 	{
-		g_adc_feedback_multiplier = 55;
-		eeprom_write_byte(ADC_FEEDBACK_MULTIPLIER_ADDR, g_adc_feedback_multiplier);
+		g_freq_supermax = DDS_MAX_FREQ;
+		eeprom_write_word(SUPERMAX_FREQ_ADDR, (uint16_t)g_freq_supermax);
 	}
+
+	if (g_freq_supermin > g_freq_supermax || DDS_MIN_FREQ > g_freq_supermin)
+	{
+		g_freq_supermin = DDS_MIN_FREQ;
+		eeprom_write_word(SUPERMIN_FREQ_ADDR, (uint16_t)g_freq_supermin);
+	}
+#ifdef _NARROW_FREQ
+	g_freq_supermax = 22500;
+	g_freq_supermin = 17000; 
+#endif // _NARROW_FREQ
 	
+	if (g_freq_upper > g_freq_supermax)
+		g_freq_upper = g_freq_supermax;
+		
+	if (g_freq_upper < g_freq_supermin)
+		g_freq_upper = g_freq_supermin;
+		
+	if (g_freq_lower < g_freq_supermin)
+		g_freq_lower = g_freq_supermin;
+		
+	if (g_freq_lower > g_freq_upper)
+		g_freq_lower = g_freq_supermin;
+
+	dds_setfreq((g_freq_upper + g_freq_lower) / 2);
+
+	if (g_supermax_bias_pwm > 100)
+	{
+		g_supermax_bias_pwm = 100;
+		eeprom_write_byte(SUPERMAX_BIAS_PWM_ADDR, g_supermax_bias_pwm);
+	}
+
 	while (bias_pwm_to_current(g_max_bias_pwm) > g_supermax_bias_pwm / 10.)
 			g_max_bias_pwm--;
 			
+	if (g_min_bias_pwm > g_max_bias_pwm)
+		g_min_bias_pwm = 10;
+
 	if (g_min_bias_pwm > g_max_bias_pwm)
 		g_min_bias_pwm = g_max_bias_pwm;
 		
 	if (g_bias_pwm_base > g_max_bias_pwm)
 		g_bias_pwm_base = g_max_bias_pwm;
-		
+
+	if (g_bias_pwm_base < g_min_bias_pwm)
+		g_bias_pwm_base = g_min_bias_pwm;
+
 	if (g_bias_pwm_shift > g_max_bias_pwm - g_bias_pwm_base)
 		g_bias_pwm_shift = g_max_bias_pwm - g_bias_pwm_base;
+
+#ifdef _POWER_CHANGEABLE		
+	if (99 < g_max_power_pwm || 69 > g_max_power_pwm)
+		g_max_power_pwm = 99;
+
+	if (69 > g_min_power_pwm || g_max_power_pwm < g_min_power_pwm)
+		g_min_power_pwm = 69;
+
+	if (g_min_power_pwm > g_max_power_pwm)
+		g_min_power_pwm = g_max_power_pwm;
 		
+	if (g_power_pwm_base > g_max_power_pwm)
+		g_power_pwm_base = g_max_power_pwm;
+
+	if (g_power_pwm_base < g_min_power_pwm)
+		g_power_pwm_base = g_min_power_pwm;
+
+	if (g_power_pwm_shift > g_max_power_pwm - g_power_pwm_base)
+		g_power_pwm_shift = g_max_power_pwm - g_power_pwm_base;
+#else // _POWER_CHANGEABLE
+	g_max_power_pwm = 99;
+	g_min_power_pwm = 69;
+	g_power_pwm_base = 95;
+	g_power_pwm_shift = 0;
+#endif // _POWER_CHANGEABLE
+		
+//	if (g_int_timeout > 1000)
+		g_int_timeout = 200;
+	
+	if (g_keep_mode >= KEEP_COUNT)
+		g_keep_mode = KEEP_CURRENT;
+	
+	if (g_autosearch_mode >= AUTOSEARCH_COUNT)
+		g_autosearch_mode = AUTOSEARCH_ON;
+		
+	g_fault_interrupts_mode = FAULT_INTERRUPTS_OFF; //-!
+	
+	if (g_keep_freq_step > 10 || 0 > g_keep_freq_step)
+		g_keep_freq_step = 5;
+	
+	if (g_keep_freq_max_delta > 10 || 0 > g_keep_freq_max_delta)
+		g_keep_freq_max_delta = 1;
+		
+	if (g_temp_stop[0] > 80 || g_temp_stop[0] < 0)
+		g_temp_stop[0] = 80;
+		
+	if (g_temp_alarm[0] > 75 || g_temp_alarm[0] < 0)
+		g_temp_alarm[0] = 75;
+
+	if (g_temp_alarm[0] > g_temp_stop[0])
+		g_temp_alarm[0] = g_temp_stop[0];
+
+	if (g_temp_stop[1] > 65 || g_temp_stop[1] < 0)
+		g_temp_stop[1] = 65;
+		
+	if (g_temp_alarm[1] > 60 || g_temp_alarm[1] < 0)
+		g_temp_alarm[1] = 60;
+
+	if (g_temp_alarm[1] > g_temp_stop[1])
+		g_temp_alarm[1] = g_temp_stop[1];
+
+	adc_set_delay(0, 1);
+	adc_set_count(0, 200);
+
+	adc_set_delay(1, 1);
+	adc_set_count(1, 200);
+
+	adc_set_delay(2, 1);
+	adc_set_count(2, 200);
+
+//	adc_set_delay(3, 1);
+//	adc_set_count(3, 400);
+	
+	if (PFC_OFF > g_pfc_mode || g_pfc_mode >= PFC_COUNT)
+		set_pfc_mode(PFC_AUTO);
+			
+	g_din[DIN_SIZE - 1] = 0;
 }
 
 void menu_int_timeout(void)
@@ -1586,14 +1682,16 @@ void menu_int_timeout(void)
 
 	if (KEY_PRESSED(KEY_RIGHT))
 	{
-		g_int_timeout++;
+		if (g_int_timeout < 1000)
+			g_int_timeout++;
 			
 		CLEAR_KEY_PRESSED(KEY_RIGHT);
 	}
 
 	if (KEY_PRESSED(KEY_LEFT))
 	{
-		g_int_timeout--;
+		if (g_int_timeout > 0)
+			g_int_timeout--;
 			
 		CLEAR_KEY_PRESSED(KEY_LEFT);
 	}

@@ -9,7 +9,7 @@
 #include <inttypes.h>
 #include <util/delay.h>
 
-#define FW_VERSION	("20101004")
+#define FW_VERSION	("20101021")
 
 #define TRUE 1
 #define FALSE 0
@@ -198,5 +198,7 @@ extern	char	g_din[DIN_SIZE];
 #define TEMP2_STOP_ADDR	(80)
 
 // next addr 82
+
+#define _NARROW_FREQ
 
 #endif /* __COMMON_H_INCLUDED_*/
