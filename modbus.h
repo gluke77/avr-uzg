@@ -1,9 +1,9 @@
 #if !defined _MODBUS_INCLUDED
 #define _MODBUS_INCLUDED
 
-#define MODBUS_MAX_MSG_LENGTH	(59) // MAX(17, 11 + 4 * N), N - max words to read
+#define MODBUS_MAX_MSG_LENGTH	(91) // MAX(17, 11 + 4 * N), N - max words to read
 #define MODBUS_READ_REQ_LENGTH	(17)
-#define MODBUS_MAX_WORDS_READ	(12)
+#define MODBUS_MAX_WORDS_READ	(20)
 
 typedef enum
 {
