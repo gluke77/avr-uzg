@@ -9,7 +9,7 @@
 #include <inttypes.h>
 #include <util/delay.h>
 
-#define FW_VERSION	("20090811")
+#define FW_VERSION	("20090812")
 
 #define TRUE 1
 #define FALSE 0
@@ -134,6 +134,9 @@ extern int8_t		g_keep_freq_max_delta;
 extern uint32_t	g_freq_upper;
 extern uint32_t	g_freq_lower;
 
+extern uint32_t	g_freq_supermax;
+extern uint32_t	g_freq_supermin;
+
 extern uint32_t	g_baudrate;
 extern uint8_t		g_modbus_id;
 
@@ -187,6 +190,8 @@ extern	char	g_din[DIN_SIZE];
 #define ADC_BIAS_MULTIPLIER_ADDR		(72)
 #define ADC_FEEDBACK_MULTIPLIER_ADDR	(73)
 
-// next addr 74
+#define SUPERMAX_FREQ_ADDR			(74)
+#define SUPERMIN_FREQ_ADDR			(76)
+// next addr 78
 
 #endif /* __COMMON_H_INCLUDED_*/

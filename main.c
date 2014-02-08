@@ -343,6 +343,19 @@ void do_usart(void)
 						eeprom_write_byte(ADC_FEEDBACK_MULTIPLIER_ADDR, g_adc_feedback_multiplier);
 						break;
 
+					case 0x0014:
+						g_freq_supermax = (uint32_t)value;
+						if (g_freq_supermax < g_freq_upper)
+							g_freq_supermax = g_freq_upper;
+						eeprom_write_word(SUPERMAX_FREQ_ADDR, (uint16_t)g_freq_supermax);
+						break;
+					case 0x0015:
+						g_freq_supermin = (uint32_t)value;
+						if (g_freq_supermin > g_freq_lower)
+							g_freq_supermin = g_freq_lower;
+						eeprom_write_word(SUPERMIN_FREQ_ADDR, (uint16_t)g_freq_supermin);
+						break;
+						
 						
 					case 0x001C:
 						adc[0].bias = (int16_t)value;
@@ -509,6 +522,18 @@ void do_usart(void)
 					cmd.addr = 1;
 					
 					cmd.value[0] = (uint16_t)g_adc_feedback_multiplier;
+				}
+				else if (0x0014 == cmd.addr)
+				{
+					cmd.addr = 1;
+					
+					cmd.value[0] = (uint16_t)g_freq_supermax;
+				}
+				else if (0x0015 == cmd.addr)
+				{
+					cmd.addr = 1;
+					
+					cmd.value[0] = (uint16_t)g_freq_supermin;
 				}
 				else if (0x001C == cmd.addr)
 				{

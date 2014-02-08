@@ -19,6 +19,10 @@
 
 #define FAST_MODE_COUNT		(75)
 #define FAST_MODE_DELAY		(500)
+#define FAST_MODE_STEP		(20)
+
+uint32_t	g_freq_supermax;
+uint32_t	g_freq_supermin;
 
 uint32_t	g_freq_upper;
 uint32_t	g_freq_lower;
@@ -651,9 +655,30 @@ void menu_search(void)
 	float		curr = 0.;
 	float		bias = 0.;
 
+	static uint32_t	last_mseconds = 0;
+	static int		fast_mode_count = 0;
+	
+	if (KEY_PRESSED(KEY_LEFT) || KEY_PRESSED(KEY_RIGHT))
+	{
+		if (timer_mseconds_total - last_mseconds < FAST_MODE_DELAY)
+		{
+			
+			if (fast_mode_count < FAST_MODE_COUNT)
+				fast_mode_count++;
+		}
+		else
+		{
+			fast_mode_count = 0;
+		}
+		last_mseconds = timer_mseconds_total;
+	}
+
 	if (KEY_PRESSED(KEY_RIGHT))
 	{
-		g_dds_freq++;
+		if (fast_mode_count >= FAST_MODE_COUNT)
+			g_dds_freq+=FAST_MODE_STEP;
+		else
+			g_dds_freq++;
 			
 		if (g_dds_freq > g_freq_upper)
 			g_dds_freq = g_freq_upper;
@@ -665,7 +690,10 @@ void menu_search(void)
 
 	if (KEY_PRESSED(KEY_LEFT))
 	{
-		g_dds_freq--;
+		if (fast_mode_count >= FAST_MODE_COUNT)
+			g_dds_freq-=FAST_MODE_STEP;
+		else
+			g_dds_freq--;
 			
 		if (g_dds_freq < g_freq_lower)
 			g_dds_freq = g_freq_lower;
@@ -885,12 +913,12 @@ void menu_freq_lower(void)
 	if (KEY_PRESSED(KEY_LEFT))
 	{
 		if (fast_mode_count >= FAST_MODE_COUNT)
-			g_freq_lower -= 10;
+			g_freq_lower -= FAST_MODE_STEP;
 		else
 			g_freq_lower--;
 
-		if (DDS_MIN_FREQ > g_freq_lower)
-			g_freq_lower = DDS_MIN_FREQ;
+		if (g_freq_supermin > g_freq_lower)
+			g_freq_lower = g_freq_supermin;
 			
 		CLEAR_KEY_PRESSED(KEY_LEFT);
 	}
@@ -898,7 +926,7 @@ void menu_freq_lower(void)
 	if (KEY_PRESSED(KEY_RIGHT))
 	{
 		if (fast_mode_count >= FAST_MODE_COUNT)
-			g_freq_lower += 10;
+			g_freq_lower += FAST_MODE_STEP;
 		else
 			g_freq_lower++;
 
@@ -940,7 +968,7 @@ void menu_freq_upper(void)
 	if (KEY_PRESSED(KEY_LEFT))
 	{
 		if (fast_mode_count >= FAST_MODE_COUNT)
-			g_freq_upper -= 10;
+			g_freq_upper -= FAST_MODE_STEP;
 		else
 			g_freq_upper--;
 
@@ -956,12 +984,12 @@ void menu_freq_upper(void)
 	if (KEY_PRESSED(KEY_RIGHT))
 	{
 		if (fast_mode_count >= FAST_MODE_COUNT)
-			g_freq_upper += 10;
+			g_freq_upper += FAST_MODE_STEP;
 		else
 			g_freq_upper++;
 
-		if (DDS_MAX_FREQ < g_freq_upper)
-			g_freq_upper = DDS_MAX_FREQ;
+		if (g_freq_supermax < g_freq_upper)
+			g_freq_upper = g_freq_supermax;
 						
 		CLEAR_KEY_PRESSED(KEY_RIGHT);
 	}
@@ -1339,6 +1367,9 @@ void loadFromEE(void)
 	g_adc_bias_multiplier = eeprom_read_byte(ADC_BIAS_MULTIPLIER_ADDR);
 	g_adc_feedback_multiplier = eeprom_read_byte(ADC_FEEDBACK_MULTIPLIER_ADDR);
 	
+	g_freq_supermax = eeprom_read_word(SUPERMAX_FREQ_ADDR);
+	g_freq_supermin = eeprom_read_word(SUPERMIN_FREQ_ADDR);
+	
 }
 
 void storeToEE(void)
@@ -1385,9 +1416,41 @@ void storeToEE(void)
 
 void reset_settings(void)
 {
+	if (0xFFFF == g_freq_supermax)
+	{
+		g_freq_supermax = DDS_MAX_FREQ;
+		eeprom_write_word(SUPERMAX_FREQ_ADDR, (uint16_t)g_freq_supermax);
+	}
+
+	if (0xFFFF == g_freq_supermin)
+	{
+		g_freq_supermin = DDS_MIN_FREQ;
+		eeprom_write_word(SUPERMIN_FREQ_ADDR, (uint16_t)g_freq_supermin);
+	}
+	
+	if (g_freq_supermin > g_freq_supermax)
+	{
+		g_freq_supermin = g_freq_supermax;
+		eeprom_write_word(SUPERMIN_FREQ_ADDR, (uint16_t)g_freq_supermin);
+	}	
+
 	g_freq_upper = 21400;
+
+	if (g_freq_upper > g_freq_supermax)
+		g_freq_upper = g_freq_supermax;
+		
+	if (g_freq_upper < g_freq_supermin)
+		g_freq_upper = g_freq_supermin;
+		
 	g_freq_lower = 21250;
-	dds_setfreq(21350);
+
+	if (g_freq_lower < g_freq_supermin)
+		g_freq_lower = g_freq_supermin;
+		
+	if (g_freq_lower > g_freq_upper)
+		g_freq_lower = g_freq_supermin;
+
+	dds_setfreq((g_freq_upper + g_freq_lower) / 2);
 
 	g_bias_pwm_base = 50;
 	g_bias_pwm_shift = 0;
@@ -1499,6 +1562,7 @@ void reset_settings(void)
 		
 	if (g_bias_pwm_shift > g_max_bias_pwm - g_bias_pwm_base)
 		g_bias_pwm_shift = g_max_bias_pwm - g_bias_pwm_base;
+		
 }
 
 void menu_int_timeout(void)
