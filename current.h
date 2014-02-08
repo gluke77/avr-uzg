@@ -3,8 +3,8 @@
 
 #include "common.h"
 
-#define SUPERMAX_BIAS_PWM	(70)
-#define MAX_BIAS_PWM_BASE	(4.)
+// moved to common.h #define SUPERMAX_BIAS_PWM	(70)
+// moved to common.h #define MAX_BIAS_PWM_BASE	(4.)
 
 extern uint8_t		g_bias_pwm;
 extern uint8_t		g_bias_pwm_step;

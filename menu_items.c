@@ -1522,10 +1522,10 @@ void reset_settings(void)
 	while (bias_pwm_to_current(g_max_bias_pwm) > g_supermax_bias_pwm / 10.)
 			g_max_bias_pwm--;
 
-	g_min_bias_pwm = 10;
+	g_min_bias_pwm = MIN_BIAS_PWM;
 
-	g_bias_pwm_base = 50;
-	g_bias_pwm_shift = 0;
+	g_bias_pwm_base = DEFAULT_BIAS_PWM_BASE;
+	g_bias_pwm_shift = DEFAULT_BIAS_PWM_SHIFT;
 	
 	g_int_timeout = DEFAULT_INT_TIMEOUT;
 	g_keep_mode = KEEP_CURRENT;
@@ -1562,7 +1562,7 @@ void reset_settings(void)
 //	adc_set_delay(3, 1);
 //	adc_set_count(3, 400);
 	
-	set_pfc_mode(PFC_AUTO);
+	set_pfc_mode(DEFAULT_PFC_MODE);
 	
 	g_power_pwm_base = 95;
 	g_power_pwm_shift = 0;
@@ -1660,7 +1660,7 @@ void check_settings(void)
 #ifdef _MIN_BIAS_CHANGEABLE		
 	if (g_min_bias_pwm > g_max_bias_pwm)
 #endif // _MIN_BIAS_CHANGEABLE		
-		g_min_bias_pwm = 10;
+		g_min_bias_pwm = MIN_BIAS_PWM;
 
 	if (g_min_bias_pwm > g_max_bias_pwm)
 		g_min_bias_pwm = g_max_bias_pwm;
@@ -1675,7 +1675,7 @@ void check_settings(void)
 	if (g_bias_pwm_shift > g_max_bias_pwm - g_bias_pwm_base)
 		g_bias_pwm_shift = g_max_bias_pwm - g_bias_pwm_base;
 #else
-	g_bias_pwm_shift = 0;	
+	g_bias_pwm_shift = DEFAULT_BIAS_PWM_SHIFT;	
 #endif // _BIAS_SHIFT_CHANGEABLE
 	
 	normalize_bias_pwm_base();
@@ -1761,7 +1761,7 @@ void check_settings(void)
 //	adc_set_count(3, 400);
 	
 	if (PFC_OFF > g_pfc_mode || g_pfc_mode >= PFC_COUNT)
-		set_pfc_mode(PFC_AUTO);
+		set_pfc_mode(DEFAULT_PFC_MODE);
 			
 	g_din[DIN_SIZE - 1] = 0;
 	
