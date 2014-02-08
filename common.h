@@ -9,7 +9,7 @@
 #include <inttypes.h>
 #include <util/delay.h>
 
-#define FW_VERSION	("20090603")
+#define FW_VERSION	("20090702")
 
 #define TRUE 1
 #define FALSE 0
@@ -23,9 +23,9 @@
 #define CLEARBITL(port, bit)	((port) &= ~(1L << (bit)))
 
 
-#define	EXT_MEM_INIT	{MCUCR = (1<<SRE);} // \
-			//			SETBIT(XMCRB, XMM0); \
-			//			SETBIT(XMCRB, XMM1); \
+#define	EXT_MEM_INIT	{MCUCR = (1<<SRE);} //
+			//			SETBIT(XMCRB, XMM0); 
+			//			SETBIT(XMCRB, XMM1);
 			//			SETBIT(XMCRB, XMM2);}
 
 //#define	GLOBAL_INT_ENABLE   SETBIT( SREG, 7 )
@@ -178,5 +178,15 @@ extern	char	g_din[DIN_SIZE];
 #define ADC_MULTIPLIER_ADDR			(46)
 #define DIN_ADDR					(47)
 #define SUPERMAX_BIAS_PWM_ADDR		(63)
+
+#define ADC0_BIAS_ADDR				(64)
+#define ADC1_BIAS_ADDR				(66)
+#define ADC2_BIAS_ADDR				(68)
+#define ADC3_BIAS_ADDR				(70)
+
+#define ADC_BIAS_MULTIPLIER_ADDR		(72)
+#define ADC_FEEDBACK_MULTIPLIER_ADDR	(73)
+
+// next addr 74
 
 #endif /* __COMMON_H_INCLUDED_*/

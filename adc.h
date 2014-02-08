@@ -18,8 +18,8 @@
 #define ADC_USE_INTERRUPT		(1)
 #define ADC_NOT_USE_INTERRUPT	(0)
 
-#define	ADC_BIASCURRENT			(0)
-#define	ADC_CURRENT				(1)
+#define	ADC_BIAS_CURRENT		(0)
+#define	ADC_FEEDBACK_CURRENT	(1)
 #define	ADC_AMP					(2)
 
 // #define _ADC_CALCULATE_MIN_MAX_DELTA
@@ -35,8 +35,13 @@ uint8_t adc_get_delay(uint8_t);
 void do_adc(void);
 uint16_t adc_get_timeout(uint8_t);
 
-float adc_to_current(int16_t);
-extern uint8_t		g_adc_multiplier;
+//float adc_to_current(int16_t);
+double adc_bias_to_current(int16_t);
+double adc_feedback_to_current(int16_t);
+
+//extern uint8_t		g_adc_multiplier;
+extern uint8_t		g_adc_bias_multiplier;
+extern uint8_t		g_adc_feedback_multiplier;
 
 #ifdef _ADC_CALCULATE_MIN_MAX_DELTA
 	int16_t adc_get_delta(uint8_t);
@@ -71,5 +76,7 @@ typedef struct
 	int16_t		delta;
 #endif /* _ADC_CALCULATE_MIN_MAX_DELTA */	
 } adc_s;
+
+extern adc_s		adc[ADC_CHANNEL_COUNT];
 
 #endif /* _ADC_INCLUDED */

@@ -192,12 +192,12 @@ void menu_monitor(void)
 		for (i = 0; i < 256; i++)
 		{
 			set_bias_pwm(i);
-			_delay_ms(g_int_timeout + g_int_timeout + adc_get_timeout(ADC_BIASCURRENT));
+			_delay_ms(g_int_timeout + g_int_timeout + adc_get_timeout(ADC_BIAS_CURRENT));
 
-			sprintf(lcd_line1, "BIAS:%d ADC0%d", g_bias_pwm, adc_mean_value(ADC_BIASCURRENT));
+			sprintf(lcd_line1, "BIAS:%d ADC0%d", g_bias_pwm, adc_mean_value(ADC_BIAS_CURRENT));
 			do_lcd();
 	
-			sprintf(buf, "BIAS_PWM\t%d\tADC0\t%d\n", g_bias_pwm, adc_mean_value(ADC_BIASCURRENT));
+			sprintf(buf, "BIAS_PWM\t%d\tADC0\t%d\n", g_bias_pwm, adc_mean_value(ADC_BIAS_CURRENT));
 			usart1_cmd(buf, 0, 0, 0);
 		}
 	}
@@ -573,7 +573,7 @@ void menu_search_auto(void)
 		{
 			keep_stop();
 		
-			timeout = adc_get_timeout(ADC_CURRENT) + g_int_timeout; // + adc_get_timeout(0);
+			timeout = adc_get_timeout(ADC_FEEDBACK_CURRENT) + g_int_timeout; // + adc_get_timeout(0);
 		
 			dds_setfreq(g_freq_lower);
 			left_freq_0 = g_freq_lower;
@@ -600,10 +600,10 @@ void menu_search_auto(void)
 					timer_id = 0;
 			
 					cli();
-					current = adc_mean_value(ADC_CURRENT);
+					current = adc_mean_value(ADC_FEEDBACK_CURRENT);
 					sei();
 
-					sprintf(lcd_line1, "SEARCH F:%-5ld C:%-4.2f", g_dds_freq, adc_to_current(current));
+					sprintf(lcd_line1, "SEARCH F:%-5ld C:%-4.2f", g_dds_freq, adc_feedback_to_current(current));
 
 					if (current > max_current)
 					{
@@ -672,15 +672,15 @@ void menu_search(void)
 		CLEAR_KEY_PRESSED(KEY_LEFT);
 	}
 
-	current_value = adc_mean_value(ADC_CURRENT);
-	bias_value = adc_mean_value(ADC_BIASCURRENT);
+	current_value = adc_mean_value(ADC_FEEDBACK_CURRENT);
+	bias_value = adc_mean_value(ADC_BIAS_CURRENT);
 //	amp_value = adc_mean_value(ADC_AMP);
 	
-	curr = adc_to_current(current_value);
+	curr = adc_feedback_to_current(current_value);
 	if (curr < 0.)
 		curr = 0.;
 	
-	bias = adc_to_current(bias_value);
+	bias = adc_bias_to_current(bias_value);
 	if (bias < 0.)
 		bias = 0.;
 	
@@ -943,14 +943,14 @@ void menu_pfc_mode(void)
 		CLEAR_KEY_PRESSED(KEY_RIGHT);
 	}
 		
-	sprintf(lcd_line1, "PC:%-17s", pfc_mode_str[g_pfc_mode]);
+	sprintf(lcd_line1, "PFC:%-16s", pfc_mode_str[g_pfc_mode]);
 	
 	set_pfc_mode(g_pfc_mode);
 	
 	menu_common();
 }
 
-char	keep_mode_str[KEEP_COUNT][5] = {"","OFF", "CURR.", "AMP."};
+char	keep_mode_str[KEEP_COUNT][6] = {"", "OFF", "CURR.", "AMP."};
 
 void menu_keep_mode(void)
 {
@@ -1089,7 +1089,7 @@ void menu_keep_delta(void)
 	
 	menu_common();
 }
-
+/*
 void menu_adc_multiplier(void)
 {
 	if (KEY_PRESSED(KEY_LEFT))
@@ -1112,7 +1112,7 @@ void menu_adc_multiplier(void)
 	
 	menu_common();
 }
-
+*/
 void menu_bias_pwm_multiplier(void)
 {
 	if (KEY_PRESSED(KEY_LEFT))
@@ -1271,13 +1271,22 @@ void loadFromEE(void)
 	fault_interrupts_init(eeprom_read_byte(FAULT_INTERRUPTS_MODE_ADDR));
 
 	g_bias_pwm_multiplier = eeprom_read_word(BIAS_PWM_MULTIPLIER_ADDR);
-	g_adc_multiplier = eeprom_read_byte(ADC_MULTIPLIER_ADDR);
+	//g_adc_multiplier = eeprom_read_byte(ADC_MULTIPLIER_ADDR);
 	
 	for (i = 0; i < DIN_SIZE; i++)
 		g_din[i] = eeprom_read_byte(DIN_ADDR + i);
 	g_din[DIN_SIZE - 1] = 0;
 	
 	g_supermax_bias_pwm = eeprom_read_byte(SUPERMAX_BIAS_PWM_ADDR);
+	
+	adc[0].bias = eeprom_read_word(ADC0_BIAS_ADDR);
+	adc[1].bias = eeprom_read_word(ADC1_BIAS_ADDR);
+	adc[2].bias = eeprom_read_word(ADC2_BIAS_ADDR);
+//	adc[3].bias = eeprom_read_word(ADC3_BIAS_ADDR);
+	
+	g_adc_bias_multiplier = eeprom_read_byte(ADC_BIAS_MULTIPLIER_ADDR);
+	g_adc_feedback_multiplier = eeprom_read_byte(ADC_FEEDBACK_MULTIPLIER_ADDR);
+	
 }
 
 void storeToEE(void)
@@ -1372,13 +1381,13 @@ void reset_settings(void)
 	//g_bias_pwm_multiplier = 600;
 	//g_adc_multiplier = 50;
 	//g_din[0] = 0;
-	
+/*	
 	if (0xFF == g_adc_multiplier)
 	{
 		g_adc_multiplier = 55;
 		eeprom_write_byte(ADC_MULTIPLIER_ADDR, g_adc_multiplier);
 	}
-	
+*/	
 	if (0xFFFF == g_bias_pwm_multiplier)
 	{
 		g_bias_pwm_multiplier = 1000;
@@ -1390,7 +1399,43 @@ void reset_settings(void)
 		g_supermax_bias_pwm = 100;
 		eeprom_write_byte(SUPERMAX_BIAS_PWM_ADDR, g_supermax_bias_pwm);
 	}
+	
+	if (0xFFFF == adc[0].bias)
+	{
+		adc[0].bias = 511;
+		eeprom_write_word(ADC0_BIAS_ADDR, adc[0].bias);
+	}
 
+	if (0xFFFF == adc[1].bias)
+	{
+		adc[1].bias = 511;
+		eeprom_write_word(ADC1_BIAS_ADDR, adc[1].bias);
+	}
+
+	if (0xFFFF == adc[2].bias)
+	{
+		adc[2].bias = 511;
+		eeprom_write_word(ADC2_BIAS_ADDR, adc[2].bias);
+	}
+/*
+	if (0xFFFF == adc[3].bias)
+	{
+		adc[3].bias = 511;
+		eeprom_write_word(ADC3_BIAS_ADDR, adc[3].bias);
+	}
+*/
+	if (0xFF == g_adc_bias_multiplier)
+	{
+		g_adc_bias_multiplier = 55;
+		eeprom_write_byte(ADC_BIAS_MULTIPLIER_ADDR, g_adc_bias_multiplier);
+	}
+	
+	if (0xFF == g_adc_feedback_multiplier)
+	{
+		g_adc_feedback_multiplier = 55;
+		eeprom_write_byte(ADC_FEEDBACK_MULTIPLIER_ADDR, g_adc_feedback_multiplier);
+	}
+	
 	while (bias_pwm_to_current(g_max_bias_pwm) > g_supermax_bias_pwm / 10.)
 			g_max_bias_pwm--;
 			

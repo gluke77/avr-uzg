@@ -8,6 +8,8 @@
 static uint8_t	g_use_interrupt;
 
 uint8_t	g_adc_multiplier = 50;
+uint8_t	g_adc_bias_multiplier = 50;
+uint8_t	g_adc_feedback_multiplier = 50;
 
 uint8_t		admux_value;
 adc_s		adc[ADC_CHANNEL_COUNT];
@@ -222,4 +224,14 @@ int16_t	adc_get_delta(uint8_t ch)
 float adc_to_current(int16_t adc)
 {
 	return adc * g_adc_multiplier / 1000.;
+}
+
+double adc_bias_to_current(int16_t adc)
+{
+	return adc * g_adc_bias_multiplier / 1000.;
+}
+
+double adc_feedback_to_current(int16_t adc)
+{
+	return adc * g_adc_feedback_multiplier / 1000.;
 }

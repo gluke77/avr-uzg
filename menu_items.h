@@ -34,7 +34,7 @@ void menu_adc2_count(void);
 void menu_adc2_delay(void);
 void menu_adc3_count(void);
 void menu_adc3_delay(void);
-void menu_adc_multiplier(void);
+//void menu_adc_multiplier(void);
 
 void menu_pfc_mode(void);
 

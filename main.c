@@ -331,14 +331,36 @@ void do_usart(void)
 						eeprom_write_word(BIAS_PWM_MULTIPLIER_ADDR, g_bias_pwm_multiplier);
 						break;
 					case 0x0011:
-						g_adc_multiplier = (uint8_t)value;
-						eeprom_write_byte(ADC_MULTIPLIER_ADDR, g_adc_multiplier);
-						break;
-					case 0x0012:
 						g_supermax_bias_pwm = (uint8_t)value;
 						eeprom_write_byte(SUPERMAX_BIAS_PWM_ADDR, g_supermax_bias_pwm);
 						break;
-				
+					case 0x0012:
+						g_adc_bias_multiplier = (uint8_t)value;
+						eeprom_write_byte(ADC_BIAS_MULTIPLIER_ADDR, g_adc_bias_multiplier);
+						break;
+					case 0x0013:
+						g_adc_feedback_multiplier = (uint8_t)value;
+						eeprom_write_byte(ADC_FEEDBACK_MULTIPLIER_ADDR, g_adc_feedback_multiplier);
+						break;
+
+						
+					case 0x001C:
+						adc[0].bias = (int16_t)value;
+						eeprom_write_word(ADC0_BIAS_ADDR, adc[0].bias);
+						break;
+					case 0x001D:
+						adc[1].bias = (int16_t)value;
+						eeprom_write_word(ADC1_BIAS_ADDR, adc[1].bias);
+						break;
+					case 0x001E:
+						adc[2].bias = (int16_t)value;
+						eeprom_write_word(ADC2_BIAS_ADDR, adc[2].bias);
+						break;
+/*					case 0x001F:
+						adc[3].bias = (int16_t)value;
+						eeprom_write_word(ADC3_BIAS_ADDR, adc[3].bias);
+						break;
+*/				
 					case 0x0020:
 						g_din[0] = (char)value;
 						eeprom_write_byte(DIN_ADDR + 0, g_din[0]);
@@ -442,8 +464,8 @@ void do_usart(void)
 					cmd.value[2] = (uint16_t)g_bias_pwm;
 					cmd.value[3] = (uint16_t)g_power_pwm;
 					cmd.value[4] = (int16_t)(temp_value() * 10);
-					cmd.value[5] = (uint16_t)adc_mean_value(ADC_BIASCURRENT);
-					cmd.value[6] = (uint16_t)adc_mean_value(ADC_CURRENT);
+					cmd.value[5] = (uint16_t)adc_mean_value(ADC_BIAS_CURRENT);
+					cmd.value[6] = (uint16_t)adc_mean_value(ADC_FEEDBACK_CURRENT);
 					cmd.value[7] = (uint16_t)adc_mean_value(ADC_AMP); // feedback coil
 					cmd.value[8] = (uint16_t)g_stop_mode;
 				}
@@ -474,15 +496,45 @@ void do_usart(void)
 				{
 					cmd.addr = 1;
 					
-					cmd.value[0] = (uint16_t)g_adc_multiplier;
+					cmd.value[0] = (uint16_t)g_supermax_bias_pwm;
 				}
 				else if (0x0012 == cmd.addr)
 				{
 					cmd.addr = 1;
 					
-					cmd.value[0] = (uint16_t)g_supermax_bias_pwm;
+					cmd.value[0] = (uint16_t)g_adc_bias_multiplier;
 				}
-				else if (0x0020 == cmd.addr)
+				else if (0x0013 == cmd.addr)
+				{
+					cmd.addr = 1;
+					
+					cmd.value[0] = (uint16_t)g_adc_feedback_multiplier;
+				}
+				else if (0x001C == cmd.addr)
+				{
+					cmd.addr = 1;
+					
+					cmd.value[0] = (uint16_t)(adc[0].bias);
+				}
+				else if (0x001D == cmd.addr)
+				{
+					cmd.addr = 1;
+					
+					cmd.value[0] = (uint16_t)(adc[1].bias);
+				}
+				else if (0x001E == cmd.addr)
+				{
+					cmd.addr = 1;
+					
+					cmd.value[0] = (uint16_t)(adc[2].bias);
+				}
+/*				else if (0x001F == cmd.addr)
+				{
+					cmd.addr = 1;
+					
+					cmd.value[0] = (uint16_t)(adc[3].bias);
+				}
+*/				else if (0x0020 == cmd.addr)
 				{
 					cmd.addr = DIN_SIZE;
 					
@@ -628,7 +680,7 @@ void do_keep_resonance(void)
 	}
 	
 	cli();
-	current = adc_mean_value(ADC_CURRENT);
+	current = adc_mean_value(ADC_FEEDBACK_CURRENT);
 	amp = adc_mean_value(ADC_AMP);
 	sei();
 	
@@ -660,7 +712,7 @@ void do_keep_resonance(void)
 			looking_up_bias_pwm = 1;
 		}
 		
-		timer_id = start_timer(g_int_timeout + adc_get_timeout(ADC_CURRENT));
+		timer_id = start_timer(g_int_timeout + adc_get_timeout(ADC_FEEDBACK_CURRENT));
 		beep_ms(100);
 	}
 //	else if (0 == timer_value(timer_id))
@@ -712,7 +764,7 @@ void do_keep_resonance(void)
 			else
 			{
 				dds_setfreq(old_freq + delta * step);
-				timer_id = start_timer(g_int_timeout + adc_get_timeout(ADC_CURRENT));
+				timer_id = start_timer(g_int_timeout + adc_get_timeout(ADC_FEEDBACK_CURRENT));
 			}
 		}
 		
@@ -732,12 +784,12 @@ void do_keep_resonance(void)
 			if ((new_value < keep_value) && (g_bias_pwm < g_max_bias_pwm))
 			{
 				set_bias_pwm(g_bias_pwm + 1);
-				timer_id = start_timer(g_int_timeout + adc_get_timeout(ADC_CURRENT) + adc_get_timeout(ADC_AMP));
+				timer_id = start_timer(g_int_timeout + adc_get_timeout(ADC_FEEDBACK_CURRENT) + adc_get_timeout(ADC_AMP));
 			}
 			else if ((new_value > keep_value) && (g_bias_pwm > g_min_bias_pwm))
 			{
 				set_bias_pwm(g_bias_pwm - 1);
-				timer_id = start_timer(g_int_timeout + adc_get_timeout(ADC_CURRENT) + adc_get_timeout(ADC_AMP));
+				timer_id = start_timer(g_int_timeout + adc_get_timeout(ADC_FEEDBACK_CURRENT) + adc_get_timeout(ADC_AMP));
 			}
 			else
 			{
@@ -757,14 +809,14 @@ void keep_stop(void)
 void keep_start(void)
 {
 	_delay_ms(1000);
-	_delay_ms(g_int_timeout + adc_get_timeout(ADC_CURRENT) + adc_get_timeout(ADC_AMP));
+	_delay_ms(g_int_timeout + adc_get_timeout(ADC_FEEDBACK_CURRENT) + adc_get_timeout(ADC_AMP));
 	g_current_keep_mode = g_keep_mode;
 	cli();
-	g_keep_current = adc_mean_value(ADC_CURRENT);
+	g_keep_current = adc_mean_value(ADC_FEEDBACK_CURRENT);
 	g_keep_amp = adc_mean_value(ADC_AMP);
 	sei();
 	g_keep_bias_pwm = g_bias_pwm;
-	sprintf(lcd_line1,"C:%-8.1fA:%-10d", adc_to_current(g_keep_current), g_keep_amp);
+	sprintf(lcd_line1,"C:%-8.1fA:%-10d", adc_feedback_to_current(g_keep_current), g_keep_amp);
 	do_lcd();
 	_delay_ms(500);
 }
