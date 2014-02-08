@@ -1,7 +1,6 @@
 #if !defined _KBD_INCLUDED
 	#define _KBD_INCLUDED
 	
-#include <avr\io.h>
 #include "common.h"
 
 #define KBD_OUT_PORT	PORTC

@@ -60,28 +60,28 @@ void lcd_write_cmd(uint8_t cmd)
 	LCD_CMD_PORT = cmd;
 
 	LCD_LATCH_ON;
-	delay_us(1);
+	_delay_us(1);
 	LCD_LATCH_OFF;
 #else
 
 	LCD_CMD_PORT &= 0xF0;
 	LCD_CMD_PORT |= (cmd >> 4);
 	LCD_LATCH_ON;
-	delay_us(1);
+	_delay_us(1);
 	LCD_LATCH_OFF;
-	delay_us(1);
+	_delay_us(1);
 	
 	LCD_CMD_PORT &= 0xF0;
 	LCD_CMD_PORT |= (cmd & 0x0F);
 	LCD_LATCH_ON;
-	delay_us(1);
+	_delay_us(1);
 	LCD_LATCH_OFF;
 
 #endif
 
 	sei();
 
-	delay_us(50);
+	_delay_us(50);
 }
 
 void lcd_write_data_(uint8_t data)
@@ -96,28 +96,28 @@ void lcd_write_data_(uint8_t data)
 	LCD_DATA_PORT = data;
 
 	LCD_LATCH_ON;
-	delay_us(1);
+	_delay_us(1);
 	LCD_LATCH_OFF;
 #else
 
 	LCD_DATA_PORT &= 0xF0;
 	LCD_DATA_PORT |= (data >> 4);
 	LCD_LATCH_ON;
-	delay_us(1);
+	_delay_us(1);
 	LCD_LATCH_OFF;
-	delay_us(1);
+	_delay_us(1);
 	
 	LCD_DATA_PORT &= 0xF0;
 	LCD_DATA_PORT |= (data & 0x0F);
 	LCD_LATCH_ON;
-	delay_us(1);
+	_delay_us(1);
 	LCD_LATCH_OFF;
 
 #endif
 
 	sei();
 
-	delay_us(50);
+	_delay_us(50);
 }	
 
 void lcd_write_data(uint8_t data)
@@ -131,15 +131,15 @@ void lcd_init(void)
 
 	LCD_DATA_DDR = 0xFF;
 
-	delay_ms(100);
+	_delay_ms(100);
 	
 #if !defined _LCD4
 	lcd_write_cmd(0x38);
-/*	delay_ms(5);
+/*	_delay_ms(5);
 	lcd_write_cmd(0x38);
-	delay_us(100);
+	_delay_us(100);
 	lcd_write_cmd(0x38);
-	delay_ms(5);
+	_delay_ms(5);
 */
 #else	
 	lcd_write_cmd(0x2C);
@@ -148,13 +148,13 @@ void lcd_init(void)
 	lcd_write_cmd(0x0C);
 	lcd_write_cmd(0x06);
 	lcd_write_cmd(0x01);
-	delay_ms(2);
+	_delay_ms(2);
 }
 
 void lcd_clear(void)
 {
 	lcd_write_cmd(0x01);
-	delay_ms(2);
+	_delay_ms(2);
 }
 
 void lcd_puts(uint8_t line, const char * msg)

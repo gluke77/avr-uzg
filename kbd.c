@@ -81,7 +81,7 @@ void kbd_scan(void)
 	{
 		KBD_OUT_PORT = 0xFF & ~(_BV(key_id));
 		
-		delay_us(5);
+		_delay_us(5);
 		
 		count = 0;
 		

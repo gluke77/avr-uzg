@@ -1,12 +1,13 @@
 // #define ENABLE_BIT_DEFINITIONS
-#include <avr/io.h>
-#include <avr/signal.h>
-#include <string.h>
 #include "usart.h"
 #include "common.h"
-#include "timer.h"
 
-#if defined _USART0_ENABLED
+#include "timer.h"
+#include "modbus.h"
+
+#include <string.h>
+
+#if defined _USART0
 
 volatile uint8_t	usart0_inbuf[USART0_INBUF_SIZE];
 volatile uint8_t	usart0_msg_ready = 0;
@@ -41,6 +42,12 @@ void usart0_setprotocol_uzs(void)
 {
 	USART0_SET_8N1;
 	usart0_protocol = USART_PROTOCOL_UZS;
+}
+
+void usart0_setprotocol_sec(void)
+{
+	USART0_SET_8N1;
+	usart0_protocol = USART_PROTOCOL_SEC;
 }
 
 void usart0_init(uint8_t mode, uint32_t baud)
@@ -86,7 +93,7 @@ void usart0_write(void)
 	{
 		SETBIT(USART0_DIR_PORT, USART0_DIR_BIT); 
 		CLEARBIT(UCSR0B, RXEN0);
-		delay_ms(5);
+		_delay_ms(5);
 		USART0_RX_INT_DISABLE;
 	}
 }
@@ -96,66 +103,35 @@ void usart0_read(void)
 	if (usart0_mode != USART_RS232)
 	{
 		while (!TESTBIT(UCSR0A, TXC0));
-		delay_ms(2);
+		_delay_ms(2);
 		SETBIT(UCSR0B, RXEN0);
 		CLEARBIT(USART0_DIR_PORT, USART0_DIR_BIT); 
-//		delay_ms(5);
+		_delay_ms(5);
 		USART0_RX_INT_ENABLE;
 	}
 }
 
-SIGNAL(SIG_UART0_RECV)
+ISR(USART0_RX_vect)
+//SIGNAL(SIG_UART0_RECV)
 {
 	uint8_t	byte;
 	
 	byte = UDR0;
 
-	if (USART_PROTOCOL_MODBUS == usart0_getprotocol())
+	switch (usart0_getprotocol())
 	{
-		if (':' == byte)
-		{
-			usart0_inbuf[0] = ':';
-			usart0_inbuf_pos = 1;
-			usart0_msg_ready = 0;
-		}
-		else if (usart0_inbuf_pos)
-			usart0_inbuf[usart0_inbuf_pos++] = byte;
-		
-		if (':' == usart0_inbuf[0] &&
-			'\r' == usart0_inbuf[usart0_inbuf_pos-2] &&
-			'\n' == usart0_inbuf[usart0_inbuf_pos-1])
-		{
-			usart0_msg_ready = 1;
-			usart0_inbuf_pos = 0;
-		}
-		else if (USART0_INBUF_SIZE == usart0_inbuf_pos)
-		{
-			usart0_inbuf_pos = 0;
-			usart0_msg_ready = 0;
-		}
-	}
-	else if (USART_PROTOCOL_101 == usart0_getprotocol())
-	{
-		if (0x23 == byte)
-		{
-			usart0_inbuf[0] = 0x23;
-			usart0_inbuf_pos = 1;
-			usart0_msg_ready = 0;
-		}
-		else if (usart0_inbuf_pos)
-			usart0_inbuf[usart0_inbuf_pos++] = byte;
-		
-		if (0x23 == usart0_inbuf[0] &&
-			0x0d == usart0_inbuf[usart0_inbuf_pos-1])
-		{
-			usart0_msg_ready = 1;
-			usart0_inbuf_pos = 0;
-		}
-		else if (USART0_INBUF_SIZE == usart0_inbuf_pos)
-		{
-			usart0_inbuf_pos = 0;
-			usart0_msg_ready = 0;
-		}
+	case USART_PROTOCOL_MODBUS:
+		usart0_rx_byte_modbus(byte);
+		break;
+	case USART_PROTOCOL_101:
+		usart0_rx_byte_101(byte);
+		break;
+	case USART_PROTOCOL_UZS:
+		usart0_rx_byte_uzs(byte);
+		break;
+	case USART_PROTOCOL_SEC:
+		usart0_rx_byte_sec(byte);
+		break;
 	}
 }
 
@@ -177,6 +153,7 @@ int usart0_data_ready(void)
 	return TESTBIT(UCSR0A, RXC0);
 }
 
+
 result_e usart0_cmd(uint8_t * req, uint8_t * ack, size_t ack_size, uint16_t delay)
 {
 	result_e		res;
@@ -185,20 +162,25 @@ result_e usart0_cmd(uint8_t * req, uint8_t * ack, size_t ack_size, uint16_t dela
 	
 	if (USART_RS485_SLAVE == usart0_getmode())
 		usart0_write();
-	
+
 	if (USART_PROTOCOL_MODBUS == usart0_getprotocol())
 	{
 		for (idx = 0; req[idx] != '\n'; idx++)
 			usart0_putchar(req[idx]);
 		usart0_putchar('\n');
 	}
-	else if (USART_PROTOCOL_101 == usart0_getprotocol())
+/*	else if (USART_PROTOCOL_101 == usart0_getprotocol())
 	{
 		for (idx = 0; req[idx] != 0x0d; idx++)
 			usart0_putchar(req[idx]);
 		usart0_putchar(0x0d);
 	}
-
+	else if (USART_PROTOCOL_SEC == usart0_getprotocol())
+	{
+		for (idx = 0; idx < 4; idx++)
+			usart0_putchar(req[idx]);
+	}
+*/	
 	if (NULL == ack)
 	{
 		if (USART_RS485_SLAVE == usart0_getmode())
@@ -206,6 +188,8 @@ result_e usart0_cmd(uint8_t * req, uint8_t * ack, size_t ack_size, uint16_t dela
 		return RESULT_OK;
 	}
 
+	return RESULT_BAD_ACK;
+	
 	usart0_read();
 	
 	res = RESULT_TIMEOUT;
@@ -231,11 +215,111 @@ result_e usart0_cmd(uint8_t * req, uint8_t * ack, size_t ack_size, uint16_t dela
 		usart0_write();	
 
 	return res;
+
 }
 
-#endif /* _USART0_ENABLED */
 
-#if defined _USART1_ENABLED
+void usart0_rx_byte_modbus(uint8_t byte)
+{
+	if (':' == byte)
+	{
+		usart0_inbuf[0] = ':';
+		usart0_inbuf_pos = 1;
+		usart0_msg_ready = 0;
+	}
+	else if (usart0_inbuf_pos)
+		usart0_inbuf[usart0_inbuf_pos++] = byte;
+		
+	if (':' == usart0_inbuf[0] &&
+		'\r' == usart0_inbuf[usart0_inbuf_pos-2] &&
+		'\n' == usart0_inbuf[usart0_inbuf_pos-1])
+	{
+		usart0_msg_ready = 1;
+		usart0_inbuf_pos = 0;
+	}
+	else if (USART0_INBUF_SIZE == usart0_inbuf_pos)
+	{
+		usart0_inbuf_pos = 0;
+		usart0_msg_ready = 0;
+	}
+}
+
+void usart0_rx_byte_101(uint8_t byte)
+{
+	if (0x23 == byte)
+	{
+		usart0_inbuf[0] = 0x23;
+		usart0_inbuf_pos = 1;
+		usart0_msg_ready = 0;
+	}
+	else if (usart0_inbuf_pos)
+		usart0_inbuf[usart0_inbuf_pos++] = byte;
+		
+	if (0x23 == usart0_inbuf[0] &&
+		0x0d == usart0_inbuf[usart0_inbuf_pos-1])
+	{
+		usart0_msg_ready = 1;
+		usart0_inbuf_pos = 0;
+	}
+	else if (USART0_INBUF_SIZE == usart0_inbuf_pos)
+	{
+		usart0_inbuf_pos = 0;
+		usart0_msg_ready = 0;
+	}
+}
+
+void usart0_rx_byte_uzs(uint8_t byte)
+{
+	if (('>' != byte) && ('\n' != byte))
+	{
+		usart0_inbuf[usart0_inbuf_pos++] = byte;
+		usart0_msg_ready = 0;
+	}
+		
+	if ('\r' == usart0_inbuf[usart0_inbuf_pos-1])
+	{
+		usart0_msg_ready = 1;
+		if (usart0_inbuf_pos < USART0_INBUF_SIZE)
+			usart0_inbuf[usart0_inbuf_pos++] = 0x00;
+		usart0_inbuf_pos = 0;
+	}
+	else if (USART0_INBUF_SIZE == usart0_inbuf_pos)
+	{
+		memset(usart0_inbuf, 0x00, USART0_INBUF_SIZE);
+		usart0_inbuf_pos = 0;
+		usart0_msg_ready = 0;
+	}
+}
+
+void usart0_rx_byte_sec(uint8_t byte)
+{
+	if (('~' == byte) && (0 == usart0_inbuf_pos))
+	{
+		usart0_msg_ready = 0;
+		usart0_inbuf[usart0_inbuf_pos++] = byte;
+	}
+	else if ((usart0_inbuf_pos > 0) && (usart0_inbuf_pos < 4))
+	{
+		usart0_inbuf[usart0_inbuf_pos++] = byte;
+		usart0_msg_ready = 0;
+	}
+	
+	if (('~' == usart0_inbuf[0]) && (4 == usart0_inbuf_pos))
+	{
+		usart0_inbuf_pos = 0;
+		usart0_msg_ready = 1;
+	}
+	else if (USART0_INBUF_SIZE == usart0_inbuf_pos)
+	{
+		memset(usart0_inbuf, 0x00, USART0_INBUF_SIZE);
+		usart0_inbuf_pos = 0;
+		usart0_msg_ready = 0;
+	}
+}
+
+#endif /* _USART0 */
+
+#if defined _USART1
 
 volatile uint8_t	usart1_inbuf[USART1_INBUF_SIZE];
 volatile uint8_t	usart1_msg_ready = 0;
@@ -272,12 +356,18 @@ void usart1_setprotocol_uzs(void)
 	usart1_protocol = USART_PROTOCOL_UZS;
 }
 
+void usart1_setprotocol_sec(void)
+{
+	USART1_SET_8N1;
+	usart1_protocol = USART_PROTOCOL_SEC;
+}
+
 void usart1_init(uint8_t mode, uint32_t baud)
 {
 	uint16_t	mult;
 	
 	mult = FOSC / 16 / baud - 1;
-
+	
 	usart1_mode = mode;
 
 	UCSR1A = 0;
@@ -285,17 +375,17 @@ void usart1_init(uint8_t mode, uint32_t baud)
 	UCSR1C = _BV(UCSZ11) | _BV(USBS1);		// 7N2
 	UBRR1H = (uint8_t)(mult>>8); 
 	UBRR1L = (uint8_t)(mult); 
-
+ 
 	usart1_setprotocol_modbus();
-
+	
 	if (usart1_mode != USART_RS232)
 		SETBIT(USART1_DIR_DDR, USART1_DIR_BIT);
 
 	if (USART_RS485_MASTER == usart1_mode)
 	{
 		CLEARBIT(UCSR1B, RXEN1);
-		SETBIT(USART1_DIR_PORT, USART1_DIR_BIT);
-		USART1_RX_INT_DISABLE; 
+		SETBIT(USART1_DIR_PORT, USART1_DIR_BIT); 
+		USART1_RX_INT_DISABLE;
 	}
 	else if (USART_RS485_SLAVE == usart1_mode)
 	{
@@ -309,14 +399,13 @@ void usart1_init(uint8_t mode, uint32_t baud)
 	}
 }
 
-
 void usart1_write(void)
 {
 	if (usart1_mode != USART_RS232)
 	{
 		SETBIT(USART1_DIR_PORT, USART1_DIR_BIT); 
 		CLEARBIT(UCSR1B, RXEN1);
-		delay_ms(5);
+		_delay_ms(5);
 		USART1_RX_INT_DISABLE;
 	}
 }
@@ -326,68 +415,35 @@ void usart1_read(void)
 	if (usart1_mode != USART_RS232)
 	{
 		while (!TESTBIT(UCSR1A, TXC1));
-	//	DELAY(2800);
-		delay_ms(2);
+		_delay_ms(2);
 		SETBIT(UCSR1B, RXEN1);
 		CLEARBIT(USART1_DIR_PORT, USART1_DIR_BIT); 
-//		delay_ms(5);
+		_delay_ms(5);
 		USART1_RX_INT_ENABLE;
 	}
 }
 
-SIGNAL(SIG_UART1_RECV)
+ISR(USART1_RX_vect)
+//SIGNAL(SIG_UART0_RECV)
 {
 	uint8_t	byte;
 	
 	byte = UDR1;
-//	lcd_write_data(byte);
 
-	if (USART_PROTOCOL_MODBUS == usart1_getprotocol())
+	switch (usart1_getprotocol())
 	{
-		if (':' == byte)
-		{
-			usart1_inbuf[0] = ':';
-			usart1_inbuf_pos = 1;
-			usart1_msg_ready = 0;
-		}
-		else if (usart1_inbuf_pos)
-			usart1_inbuf[usart1_inbuf_pos++] = byte;
-		
-		if (':' == usart1_inbuf[0] &&
-			'\r' == usart1_inbuf[usart1_inbuf_pos-2] &&
-			'\n' == usart1_inbuf[usart1_inbuf_pos-1])
-		{
-			usart1_msg_ready = 1;
-		}
-		else if (USART1_INBUF_SIZE == usart1_inbuf_pos)
-		{
-			memset(usart1_inbuf, 0x00, USART1_INBUF_SIZE);
-			usart1_inbuf_pos = 0;
-			usart1_msg_ready = 0;
-		}
-	}
-	else if (USART_PROTOCOL_UZS == usart1_getprotocol())
-	{
-		if (('>' != byte) && ('\n' != byte))
-		{
-			usart1_inbuf[usart1_inbuf_pos++] = byte;
-			usart1_msg_ready = 0;
-		}
-		
-		if ('\r' == usart1_inbuf[usart1_inbuf_pos-1])
-		{
-			usart1_msg_ready = 1;
-			if (usart1_inbuf_pos < USART1_INBUF_SIZE)
-				usart1_inbuf[usart1_inbuf_pos++] = 0x00;
-			usart1_inbuf_pos = 0;
-//			parse_inbuf(usart1_inbuf_pos);
-		}
-		else if (USART1_INBUF_SIZE == usart1_inbuf_pos)
-		{
-			memset(usart1_inbuf, 0x00, USART1_INBUF_SIZE);
-			usart1_inbuf_pos = 0;
-			usart1_msg_ready = 0;
-		}
+	case USART_PROTOCOL_MODBUS:
+		usart1_rx_byte_modbus(byte);
+		break;
+	case USART_PROTOCOL_101:
+		usart1_rx_byte_101(byte);
+		break;
+	case USART_PROTOCOL_UZS:
+		usart1_rx_byte_uzs(byte);
+		break;
+	case USART_PROTOCOL_SEC:
+		usart1_rx_byte_sec(byte);
+		break;
 	}
 }
 
@@ -409,6 +465,7 @@ int usart1_data_ready(void)
 	return TESTBIT(UCSR1A, RXC1);
 }
 
+
 result_e usart1_cmd(uint8_t * req, uint8_t * ack, size_t ack_size, uint16_t delay)
 {
 	result_e		res;
@@ -417,7 +474,7 @@ result_e usart1_cmd(uint8_t * req, uint8_t * ack, size_t ack_size, uint16_t dela
 	
 	if (USART_RS485_SLAVE == usart1_getmode())
 		usart1_write();
-	
+
 	if (USART_PROTOCOL_MODBUS == usart1_getprotocol())
 	{
 		for (idx = 0; req[idx] != '\n'; idx++)
@@ -430,7 +487,11 @@ result_e usart1_cmd(uint8_t * req, uint8_t * ack, size_t ack_size, uint16_t dela
 			usart1_putchar(req[idx]);
 		usart1_putchar(0x0d);
 	}
-	
+	else if (USART_PROTOCOL_SEC == usart1_getprotocol())
+	{
+		for (idx = 0; idx < 4; idx++)
+			usart1_putchar(req[idx]);
+	}
 	
 	if (NULL == ack)
 	{
@@ -466,4 +527,104 @@ result_e usart1_cmd(uint8_t * req, uint8_t * ack, size_t ack_size, uint16_t dela
 	return res;
 }
 
-#endif /* _USART1_ENABLED */
+
+void usart1_rx_byte_modbus(uint8_t byte)
+{
+	if (':' == byte)
+	{
+		usart1_inbuf[0] = ':';
+		usart1_inbuf_pos = 1;
+		usart1_msg_ready = 0;
+	}
+	else if (usart1_inbuf_pos)
+		usart1_inbuf[usart1_inbuf_pos++] = byte;
+		
+	if (':' == usart1_inbuf[0] &&
+		'\r' == usart1_inbuf[usart1_inbuf_pos-2] &&
+		'\n' == usart1_inbuf[usart1_inbuf_pos-1])
+	{
+		usart1_msg_ready = 1;
+		usart1_inbuf_pos = 0;
+	}
+	else if (USART1_INBUF_SIZE == usart1_inbuf_pos)
+	{
+		usart1_inbuf_pos = 0;
+		usart1_msg_ready = 0;
+	}
+}
+
+void usart1_rx_byte_101(uint8_t byte)
+{
+	if (0x23 == byte)
+	{
+		usart1_inbuf[0] = 0x23;
+		usart1_inbuf_pos = 1;
+		usart1_msg_ready = 0;
+	}
+	else if (usart1_inbuf_pos)
+		usart1_inbuf[usart1_inbuf_pos++] = byte;
+		
+	if (0x23 == usart1_inbuf[0] &&
+		0x0d == usart1_inbuf[usart1_inbuf_pos-1])
+	{
+		usart1_msg_ready = 1;
+		usart1_inbuf_pos = 0;
+	}
+	else if (USART1_INBUF_SIZE == usart1_inbuf_pos)
+	{
+		usart1_inbuf_pos = 0;
+		usart1_msg_ready = 0;
+	}
+}
+
+void usart1_rx_byte_uzs(uint8_t byte)
+{
+	if (('>' != byte) && ('\n' != byte))
+	{
+		usart1_inbuf[usart1_inbuf_pos++] = byte;
+		usart1_msg_ready = 0;
+	}
+		
+	if ('\r' == usart1_inbuf[usart1_inbuf_pos-1])
+	{
+		usart1_msg_ready = 1;
+		if (usart1_inbuf_pos < USART1_INBUF_SIZE)
+			usart1_inbuf[usart1_inbuf_pos++] = 0x00;
+		usart1_inbuf_pos = 0;
+	}
+	else if (USART1_INBUF_SIZE == usart1_inbuf_pos)
+	{
+		memset(usart1_inbuf, 0x00, USART1_INBUF_SIZE);
+		usart1_inbuf_pos = 0;
+		usart1_msg_ready = 0;
+	}
+}
+
+void usart1_rx_byte_sec(uint8_t byte)
+{
+	if (('~' == byte) && (0 == usart1_inbuf_pos))
+	{
+		usart1_msg_ready = 0;
+		usart1_inbuf[usart1_inbuf_pos++] = byte;
+	}
+	else if ((usart1_inbuf_pos > 0) && (usart1_inbuf_pos < 4))
+	{
+		usart1_inbuf[usart1_inbuf_pos++] = byte;
+		usart1_msg_ready = 0;
+	}
+	
+	if (('~' == usart1_inbuf[0]) && (4 == usart1_inbuf_pos))
+	{
+		usart1_inbuf_pos = 0;
+		usart1_msg_ready = 1;
+	}
+	else if (USART1_INBUF_SIZE == usart1_inbuf_pos)
+	{
+		memset(usart1_inbuf, 0x00, USART1_INBUF_SIZE);
+		usart1_inbuf_pos = 0;
+		usart1_msg_ready = 0;
+	}
+}
+
+#endif /* _USART1 */
+

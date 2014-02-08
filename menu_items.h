@@ -1,7 +1,6 @@
 #if !defined _MENU_ITEMS_INCLUDED
 #define _MENU_ITEMS_INCLUDED
 
-#include <avr\io.h>
 #include "common.h"
 #include "menu.h"
 
@@ -35,6 +34,7 @@ void menu_adc2_count(void);
 void menu_adc2_delay(void);
 void menu_adc3_count(void);
 void menu_adc3_delay(void);
+void menu_adc_multiplier(void);
 
 void menu_pfc_mode(void);
 
@@ -70,5 +70,6 @@ void menu_fault_interrupts(void);
 void menu_stop_mode(void);
 
 void menu_version(void);
+void menu_din(void);
 
 #endif /* _MENU_ITEMS_INCLUDED */

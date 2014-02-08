@@ -7,13 +7,15 @@
 
 static uint8_t	g_use_interrupt;
 
+uint8_t	g_adc_multiplier = 50;
+
 uint8_t		admux_value;
 adc_s		adc[ADC_CHANNEL_COUNT];
 uint8_t		adc_current_channel;
 int8_t		adc_work_channels[] = {0,1,2,-1}; 
 
-
-SIGNAL(SIG_ADC)
+ISR(ADC_vect)
+//SIGNAL(SIG_ADC)
 {
 	uint8_t		lo, hi;
 	uint8_t		ch;
@@ -219,5 +221,5 @@ int16_t	adc_get_delta(uint8_t ch)
 
 float adc_to_current(int16_t adc)
 {
-	return adc * .05;
+	return adc * g_adc_multiplier / 1000.;
 }

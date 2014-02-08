@@ -1,7 +1,6 @@
 #if !defined _POWER_INCLUDED
 #define _POWER_INCLUDED
 
-#include <avr/io.h>
 #include "common.h"
 
 extern uint8_t		g_power_pwm;

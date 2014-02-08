@@ -1,7 +1,6 @@
 #if !defined _MENU_INCLUDED
 #define _MENU_INCLUDED
 
-#include <avr\io.h>
 #include "common.h"
 
 typedef void (* menu_item_t)(void);

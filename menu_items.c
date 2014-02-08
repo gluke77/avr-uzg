@@ -57,6 +57,7 @@ void menu_items_init(void)
 	menu_items[MENU_MODE_WORK][idx++] = menu_adc2;
 //	menu_items[MENU_MODE_WORK][idx++] = menu_adc3;
 	menu_items[MENU_MODE_WORK][idx++] = menu_version;
+	menu_items[MENU_MODE_WORK][idx++] = menu_din;
 
 	
 	g_menu_search_auto_idx = idx;
@@ -71,7 +72,8 @@ void menu_items_init(void)
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_min_bias_pwm;	
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_bias_pwm_base;
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_bias_pwm_shift;
-	menu_items[MENU_MODE_SETTINGS][idx++] = menu_bias_pwm_multiplier;
+	//menu_items[MENU_MODE_SETTINGS][idx++] = menu_bias_pwm_multiplier;
+	//menu_items[MENU_MODE_SETTINGS][idx++] = menu_adc_multiplier;
 	
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_max_power_pwm;
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_min_power_pwm;
@@ -190,7 +192,7 @@ void menu_monitor(void)
 		for (i = 0; i < 256; i++)
 		{
 			set_bias_pwm(i);
-			delay_ms(g_int_timeout + g_int_timeout + adc_get_timeout(ADC_BIASCURRENT));
+			_delay_ms(g_int_timeout + g_int_timeout + adc_get_timeout(ADC_BIASCURRENT));
 
 			sprintf(lcd_line1, "BIAS:%d ADC0%d", g_bias_pwm, adc_mean_value(ADC_BIASCURRENT));
 			do_lcd();
@@ -1088,6 +1090,29 @@ void menu_keep_delta(void)
 	menu_common();
 }
 
+void menu_adc_multiplier(void)
+{
+	if (KEY_PRESSED(KEY_LEFT))
+	{
+		if (g_adc_multiplier > 20)
+			g_adc_multiplier--;
+
+		CLEAR_KEY_PRESSED(KEY_LEFT);
+	}
+
+	if (KEY_PRESSED(KEY_RIGHT))
+	{
+		if (200 > g_adc_multiplier)
+			g_adc_multiplier++;
+
+		CLEAR_KEY_PRESSED(KEY_RIGHT);
+	}
+		
+	sprintf(lcd_line1, "ADC MULT= %-10d", g_adc_multiplier);
+	
+	menu_common();
+}
+
 void menu_bias_pwm_multiplier(void)
 {
 	if (KEY_PRESSED(KEY_LEFT))
@@ -1202,44 +1227,10 @@ void menu_reset_settings(void)
 	menu_common();
 }
 
-#define FREQ_UPPER_ADDR	(0)
-#define FREQ_LOWER_ADDR	(2)
-#define FREQ_ADDR		(4)
-#define PWM_SHIFT_ADDR	(6)
-#define	PWM_BASE_ADDR	(8)
-
-#define ADC0_DELAY_ADDR	(9)
-#define ADC0_COUNT_ADDR	(10)
-#define ADC1_DELAY_ADDR	(12)
-#define ADC1_COUNT_ADDR	(13)
-#define ADC2_DELAY_ADDR	(15)
-#define ADC2_COUNT_ADDR	(16)
-#define ADC3_DELAY_ADDR	(18)
-#define ADC3_COUNT_ADDR	(19)
-
-#define PFC_MODE_ADDR	(21)
-#define INT_TIMEOUT_ADDR	(22)
-#define KEEP_MODE_ADDR	(24)
-#define KEEP_STEP_ADDR	(25)
-#define KEEP_DELTA_ADDR	(26)
-#define MAX_PWM_ADDR	(27)
-#define MIN_PWM_ADDR	(28)
-#define BAUD_LO_ADDR	(29)
-#define BAUD_HI_ADDR	(31)
-#define MODBUS_ID_ADDR	(33)
-#define TEMP_ALARM_ADDR	(34)
-#define TEMP_STOP_ADDR	(36)
-
-#define POWER_PWM_SHIFT_ADDR		(38)
-#define POWER_PWM_BASE_ADDR			(39)
-#define MAX_POWER_PWM_ADDR			(40)
-#define MIN_POWER_PWM_ADDR			(41)
-#define AUTOSEARCH_MODE_ADDR		(42)
-#define FAULT_INTERRUPTS_MODE_ADDR	(43)
-#define BIAS_PWM_MULTIPLIER_ADDR	(44)
-
 void loadFromEE(void)
 {
+	int i;
+
 	g_freq_upper = (uint32_t)eeprom_read_word(FREQ_UPPER_ADDR);
 	g_freq_lower = (uint32_t)eeprom_read_word(FREQ_LOWER_ADDR);
 	dds_setfreq((uint32_t)eeprom_read_word(FREQ_ADDR));
@@ -1280,6 +1271,11 @@ void loadFromEE(void)
 	fault_interrupts_init(eeprom_read_byte(FAULT_INTERRUPTS_MODE_ADDR));
 
 	g_bias_pwm_multiplier = eeprom_read_word(BIAS_PWM_MULTIPLIER_ADDR);
+	g_adc_multiplier = eeprom_read_byte(ADC_MULTIPLIER_ADDR);
+	
+	for (i = 0; i < DIN_SIZE; i++)
+		g_din[i] = eeprom_read_byte(DIN_ADDR + i);
+	g_din[DIN_SIZE - 1] = 0;
 }
 
 void storeToEE(void)
@@ -1320,7 +1316,8 @@ void storeToEE(void)
 	eeprom_write_byte(AUTOSEARCH_MODE_ADDR, g_autosearch_mode);
 	eeprom_write_byte(FAULT_INTERRUPTS_MODE_ADDR, g_fault_interrupts_mode);
 	
-	eeprom_write_word(BIAS_PWM_MULTIPLIER_ADDR, g_bias_pwm_multiplier);
+//	eeprom_write_word(BIAS_PWM_MULTIPLIER_ADDR, g_bias_pwm_multiplier);
+//	eeprom_write_byte(ADC_MULTIPLIER_ADDR, g_adc_multiplier);
 }
 
 void reset_settings(void)
@@ -1370,7 +1367,9 @@ void reset_settings(void)
 	g_max_power_pwm = 99;
 	g_min_power_pwm = 69;
 	
-	g_bias_pwm_multiplier = 600;
+	//g_bias_pwm_multiplier = 600;
+	//g_adc_multiplier = 50;
+	//g_din[0] = 0;
 }
 
 void menu_int_timeout(void)
@@ -1509,6 +1508,12 @@ void menu_stop_mode(void)
 void menu_version(void)
 {
 	sprintf(lcd_line1, "FW VERSION:%-10s", FW_VERSION);
+	menu_common();
+}
+
+void menu_din(void)
+{
+	sprintf(lcd_line1, "DIN:%-16s", g_din);
 	menu_common();
 }
 

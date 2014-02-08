@@ -15,6 +15,8 @@ changelog:
 
 **********************************************************************************/
 
+#include "common.h"
+
 #include <avr/io.h>
 
 #include "ds18x20.h"
@@ -264,7 +266,7 @@ uint8_t DS18X20_copy_scratchpad( uint8_t with_power_extern,
 		ow_command( DS18X20_COPY_SCRATCHPAD, id );
 		if (with_power_extern != DS18X20_POWER_EXTERN)
 			ow_parasite_enable();
-		delay_ms(DS18X20_COPYSP_DELAY); // wait for 10 ms 
+		_delay_ms(DS18X20_COPYSP_DELAY); // wait for 10 ms 
 		if (with_power_extern != DS18X20_POWER_EXTERN)
 			ow_parasite_disable();
 		return DS18X20_OK;
@@ -282,7 +284,7 @@ uint8_t DS18X20_recall_E2( uint8_t id[] )
 		// TODO: wait until status is "1" (then eeprom values
 		// have been copied). here simple delay to avoid timeout 
 		// handling
-		delay_ms(DS18X20_COPYSP_DELAY);
+		_delay_ms(DS18X20_COPYSP_DELAY);
 		return DS18X20_OK;
 	} 
 	else { 

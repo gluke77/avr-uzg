@@ -1,7 +1,6 @@
 #if !defined _ADC_INCLUDED
 	#define _ADC_INCLUDED
 	
-#include <avr\io.h>
 #include "common.h"
 
 #define ADC_ON		SETBIT(ADCSRA, ADEN)
@@ -37,6 +36,7 @@ void do_adc(void);
 uint16_t adc_get_timeout(uint8_t);
 
 float adc_to_current(int16_t);
+extern uint8_t		g_adc_multiplier;
 
 #ifdef _ADC_CALCULATE_MIN_MAX_DELTA
 	int16_t adc_get_delta(uint8_t);

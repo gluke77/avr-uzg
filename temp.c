@@ -101,7 +101,7 @@ void do_temp(void)
 			sprintf(lcd_line0, "рело. Kпхрхвеяйюъ   ");
 			do_lcd();
 			beep_ms(100);
-			delay_ms(100);
+			_delay_ms(100);
 			beep_ms(200);
 			
 		}

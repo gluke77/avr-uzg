@@ -35,6 +35,8 @@ int8_t		g_keep_freq_max_delta;
 uint32_t	g_baudrate;
 uint8_t		g_modbus_id;
 
+char		g_din[DIN_SIZE] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+
 extern uint8_t		g_autosearch_running;
 extern uint8_t		g_menu_search_auto_idx;
 extern uint16_t	g_int_timeout;
@@ -102,10 +104,12 @@ int main(void)
 	fault_interrupts_init(g_fault_interrupts_mode);
 
 	beep_ms(500);
-	delay_ms(500);
+	_delay_ms(500);
 	beep_ms(200);
-	delay_ms(200);
+	_delay_ms(200);
 	beep_ms(200);
+	
+	//usart1_write();
 
 	for (;;)
 	{
@@ -130,14 +134,14 @@ int main(void)
 			sprintf(lcd_line0, "CURRENT OVERLOAD     ");
 
 			beep_ms(200);
-			delay_ms(200);
+			_delay_ms(200);
 		}
 		else if (g_pwm_alarm)
 		{
 			sprintf(lcd_line0, "FREQUENCY OVERLOAD  ");
 
 			beep_ms(200);
-			delay_ms(200);
+			_delay_ms(200);
 		}
 		else if (TEST_FAULT_PWM)
 			sprintf(lcd_line0, "FREQUENCY OVERLOAD  ");
@@ -152,12 +156,14 @@ int main(void)
 		do_lcd();
 		do_temp();
 		do_usart();
+		//usart1_putchar('1');
 	}
 	return 0;
 }
 
 void do_usart(void)
 {
+	int			i;
 	uint16_t	value;
 
 	if (!usart1_msg_ready)
@@ -315,6 +321,80 @@ void do_usart(void)
 						if (g_power_pwm_shift < 0)
 							g_power_pwm_shift = 0;
 						break;
+					case 0x0010:
+						g_bias_pwm_multiplier = (uint16_t)value;
+						eeprom_write_word(BIAS_PWM_MULTIPLIER_ADDR, g_bias_pwm_multiplier);
+						break;
+					case 0x0011:
+						g_adc_multiplier = (uint8_t)value;
+						eeprom_write_byte(ADC_MULTIPLIER_ADDR, g_adc_multiplier);
+						break;
+
+					case 0x0020:
+						g_din[0] = (char)value;
+						eeprom_write_byte(DIN_ADDR + 0, g_din[0]);
+						break;
+					case 0x0021:
+						g_din[1] = (char)value;
+						eeprom_write_byte(DIN_ADDR + 1, g_din[1]);
+						break;
+					case 0x0022:
+						g_din[2] = (char)value;
+						eeprom_write_byte(DIN_ADDR + 2, g_din[2]);
+						break;
+					case 0x0023:
+						g_din[3] = (char)value;
+						eeprom_write_byte(DIN_ADDR + 3, g_din[3]);
+						break;
+					case 0x0024:
+						g_din[4] = (char)value;
+						eeprom_write_byte(DIN_ADDR + 4, g_din[4]);
+						break;
+					case 0x0025:
+						g_din[5] = (char)value;
+						eeprom_write_byte(DIN_ADDR + 5, g_din[5]);
+						break;
+					case 0x0026:
+						g_din[6] = (char)value;
+						eeprom_write_byte(DIN_ADDR + 6, g_din[6]);
+						break;
+					case 0x0027:
+						g_din[7] = (char)value;
+						eeprom_write_byte(DIN_ADDR + 7, g_din[7]);
+						break;
+					case 0x0028:
+						g_din[8] = (char)value;
+						eeprom_write_byte(DIN_ADDR + 8, g_din[8]);
+						break;
+					case 0x0029:
+						g_din[9] = (char)value;
+						eeprom_write_byte(DIN_ADDR + 9, g_din[9]);
+						break;
+					case 0x002A:
+						g_din[10] = (char)value;
+						eeprom_write_byte(DIN_ADDR + 10, g_din[10]);
+						break;
+					case 0x002B:
+						g_din[11] = (char)value;
+						eeprom_write_byte(DIN_ADDR + 11, g_din[11]);
+						break;
+					case 0x002C:
+						g_din[12] = (char)value;
+						eeprom_write_byte(DIN_ADDR + 12, g_din[12]);
+						break;
+					case 0x002D:
+						g_din[13] = (char)value;
+						eeprom_write_byte(DIN_ADDR + 13, g_din[13]);
+						break;
+					case 0x002E:
+						g_din[14] = (char)value;
+						eeprom_write_byte(DIN_ADDR + 14, g_din[14]);
+						break;
+					case 0x002F:
+						g_din[15] = (char)value;
+						eeprom_write_byte(DIN_ADDR + 15, g_din[15]);
+						break;
+
 					case 0xFFFF:
 						storeToEE();
 						break;
@@ -375,6 +455,26 @@ void do_usart(void)
 					cmd.value[10] = (uint16_t)g_power_pwm_base;
 					cmd.value[11] = (uint16_t)g_power_pwm_shift;
 				}
+				else if (0x0010 == cmd.addr)
+				{
+					cmd.addr = 1;
+					
+					cmd.value[0] = (uint16_t)g_bias_pwm_multiplier;
+				}
+				else if (0x0011 == cmd.addr)
+				{
+					cmd.addr = 1;
+					
+					cmd.value[0] = (uint16_t)g_adc_multiplier;
+				}
+				else if (0x0020 == cmd.addr)
+				{
+					cmd.addr = DIN_SIZE;
+					
+					for (i = 0; i < DIN_SIZE; i++)
+						cmd.value[i] = (uint16_t)g_din[i];
+					
+				}
 				
 				modbus_cmd2msg(&cmd, msg, MODBUS_MAX_MSG_LENGTH);
 				usart1_cmd(msg, 0, 0, 300);
@@ -407,7 +507,7 @@ void start(void)
 		sprintf(lcd_line0, "FREQUENCY OVERLOAD  ");
 		do_lcd();
 		beep_ms(200);
-		delay_ms(1000);
+		_delay_ms(1000);
 		return;
 	}
 		
@@ -416,7 +516,7 @@ void start(void)
 		sprintf(lcd_line0, "CURRENT OVERLOAD    ");
 		do_lcd();
 		beep_ms(200);
-		delay_ms(1000);
+		_delay_ms(1000);
 		return;
 	}
 	
@@ -425,14 +525,14 @@ void start(void)
 		sprintf(lcd_line0, "OVERHEAT            ");
 		do_lcd();
 		beep_ms(200);
-		delay_ms(1000);
+		_delay_ms(1000);
 		return;
 	}
 	
 	if (PFC_OFF != g_pfc_mode)
 	{
 		PFC_RUN;
-		delay_ms(10);
+		_delay_ms(10);
 	}
 	
 	usg_run();
@@ -452,7 +552,7 @@ void stop(stop_mode_e mode)
 	
 	if (PFC_ON != g_pfc_mode)
 	{
-		delay_ms(10);
+		_delay_ms(10);
 		PFC_STOP;
 	}
 	
@@ -641,8 +741,8 @@ void keep_stop(void)
 
 void keep_start(void)
 {
-	delay_ms(1000);
-	delay_ms(g_int_timeout + adc_get_timeout(ADC_CURRENT) + adc_get_timeout(ADC_AMP));
+	_delay_ms(1000);
+	_delay_ms(g_int_timeout + adc_get_timeout(ADC_CURRENT) + adc_get_timeout(ADC_AMP));
 	g_current_keep_mode = g_keep_mode;
 	cli();
 	g_keep_current = adc_mean_value(ADC_CURRENT);
@@ -651,7 +751,7 @@ void keep_start(void)
 	g_keep_bias_pwm = g_bias_pwm;
 	sprintf(lcd_line1,"C:%-8.1fA:%-10d", adc_to_current(g_keep_current), g_keep_amp);
 	do_lcd();
-	delay_ms(500);
+	_delay_ms(500);
 }
 
 void fault_interrupts_init(fault_interrupts_mode_e mode)

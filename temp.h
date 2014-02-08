@@ -1,7 +1,6 @@
 #if !defined _TEMP_INCLUDED
 #define _TEMP_INCLUDED
 
-#include <avr/io.h>
 #include "common.h"
 
 #include "ds18x20.h"

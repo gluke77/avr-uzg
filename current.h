@@ -1,7 +1,6 @@
 #if !defined _CURRENT_INCLUDED
 #define _CURRENT_INCLUDED
 
-#include <avr/io.h>
 #include "common.h"
 
 extern	uint8_t		g_bias_pwm;

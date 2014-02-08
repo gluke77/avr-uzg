@@ -1,16 +1,11 @@
 #if !defined _BEEP_INCLUDED
 #define _BEEP_INCLUDED
 
-#include <avr/io.h>
 #include "common.h"
 
-#if defined _UZS
-
-	#define BEEP_PORT		PORTD
-	#define BEEP_DDR		DDRD
-	#define BEEP_BIT		(1)
-
-#endif /* _UZS */
+#define BEEP_PORT		PORTD
+#define BEEP_DDR		DDRD
+#define BEEP_BIT		(1)
 
 #define BEEP_INIT	SETBIT(BEEP_DDR, BEEP_BIT)
 #define BEEP_ON		SETBIT(BEEP_PORT, BEEP_BIT)

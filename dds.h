@@ -1,7 +1,6 @@
 #if !defined __DDS_H_INCLUDED_
 #define __DDS_H_INCLUDED_
 
-#include <avr/io.h>
 #include "common.h"
 //#include "spi.h"
 
