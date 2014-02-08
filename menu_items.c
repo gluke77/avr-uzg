@@ -54,9 +54,9 @@ void menu_items_init(void)
 #ifdef _BIAS_CHANGEABLE
 	menu_items[MENU_MODE_WORK][idx++] = menu_current;	
 #endif // _BIAS_CHANGEABLE
-//	menu_items[MENU_MODE_WORK][idx++] = menu_amp;
+	menu_items[MENU_MODE_WORK][idx++] = menu_amp;
 	menu_items[MENU_MODE_WORK][idx++] = menu_temp;
-//	menu_items[MENU_MODE_WORK][idx++] = menu_temp2;
+	menu_items[MENU_MODE_WORK][idx++] = menu_temp2;
 //	menu_items[MENU_MODE_WORK][idx++] = menu_monitor;
 	menu_items[MENU_MODE_WORK][idx++] = menu_stop_mode;
 
@@ -94,14 +94,18 @@ void menu_items_init(void)
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_max_power_pwm;
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_min_power_pwm;
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_power_pwm_base;
-//	menu_items[MENU_MODE_SETTINGS][idx++] = menu_power_pwm_shift;
+	menu_items[MENU_MODE_SETTINGS][idx++] = menu_power_pwm_shift;
 #endif // _POWER_CHANGEABLE
 
-//	menu_items[MENU_MODE_SETTINGS][idx++] = menu_int_timeout; //-
+	menu_items[MENU_MODE_SETTINGS][idx++] = menu_int_timeout; //-
 
-//	menu_items[MENU_MODE_SETTINGS][idx++] = menu_pfc_mode;
+	menu_items[MENU_MODE_SETTINGS][idx++] = menu_pfc_mode;
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_autosearch_mode;
+
+#ifdef _STARTBUTTON_ENABLED
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_startbutton;
+#endif // _STARTBUTTON_ENABLED
+
 #ifdef _KEEP_CHANGEABLE
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_keep_mode;
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_keep_step;
@@ -109,11 +113,11 @@ void menu_items_init(void)
 #endif // _KEEP_CHANGEABLE
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_temp_alarm;	
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_temp_stop;	
-//	menu_items[MENU_MODE_SETTINGS][idx++] = menu_temp2_alarm;	
-//	menu_items[MENU_MODE_SETTINGS][idx++] = menu_temp2_stop;	
+	menu_items[MENU_MODE_SETTINGS][idx++] = menu_temp2_alarm;	
+	menu_items[MENU_MODE_SETTINGS][idx++] = menu_temp2_stop;	
 //-	menu_items[MENU_MODE_SETTINGS][idx++] = menu_fault_interrupts;	
-//	menu_items[MENU_MODE_SETTINGS][idx++] = menu_modbus_id;	
-//	menu_items[MENU_MODE_SETTINGS][idx++] = menu_baudrate;	
+	menu_items[MENU_MODE_SETTINGS][idx++] = menu_modbus_id;	
+	menu_items[MENU_MODE_SETTINGS][idx++] = menu_baudrate;	
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_store_settings;
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_reset_settings;
 
@@ -1487,7 +1491,7 @@ void storeToEE(void)
 void reset_settings(void)
 {
 
-	g_freq_upper = 36200;
+	g_freq_upper = 19900;
 
 	if (g_freq_upper > g_freq_supermax)
 		g_freq_upper = g_freq_supermax;
@@ -1495,7 +1499,7 @@ void reset_settings(void)
 	if (g_freq_upper < g_freq_supermin)
 		g_freq_upper = g_freq_supermin;
 		
-	g_freq_lower = 35700;
+	g_freq_lower = 19700;
 
 	if (g_freq_lower < g_freq_supermin)
 		g_freq_lower = g_freq_supermin;
@@ -1516,9 +1520,9 @@ void reset_settings(void)
 	g_bias_pwm_shift = 0;
 	
 	g_int_timeout = 200;
-	g_keep_mode = KEEP_OFF;
+	g_keep_mode = KEEP_CURRENT;
 	
-	g_autosearch_mode = AUTOSEARCH_OFF;
+	g_autosearch_mode = AUTOSEARCH_ON;
 	g_fault_interrupts_mode = FAULT_INTERRUPTS_OFF;
 	
 	g_keep_freq_step = 5;
@@ -1545,7 +1549,7 @@ void reset_settings(void)
 //	adc_set_delay(3, 1);
 //	adc_set_count(3, 400);
 	
-	set_pfc_mode(PFC_OFF);
+	set_pfc_mode(PFC_AUTO);
 	
 	g_power_pwm_base = 95;
 	g_power_pwm_shift = 0;
@@ -1553,7 +1557,11 @@ void reset_settings(void)
 	g_max_power_pwm = POWER_PWM_MAX;
 	g_min_power_pwm = POWER_PWM_MIN;
 	
+#ifdef _STARTBUTTON_ENABLED
 	g_startbutton_mode = STARTBUTTON_ON;
+#else 
+	g_startbutton_mode = STARTBUTTON_OFF;
+#endif //_STARTBUTTON_ENABLED
 }
 
 void check_settings(void)
@@ -1606,8 +1614,8 @@ void check_settings(void)
 		eeprom_write_word(SUPERMIN_FREQ_ADDR, (uint16_t)g_freq_supermin);
 	}
 #ifdef _NARROW_FREQ
-	g_freq_supermax = 22500;
-	g_freq_supermin = 17000; 
+	g_freq_supermax = 22000;
+	g_freq_supermin = 19000; 
 #endif // _NARROW_FREQ
 	
 	if (g_freq_upper > g_freq_supermax)
@@ -1674,14 +1682,14 @@ void check_settings(void)
 	g_power_pwm_shift = 0;
 #endif // _POWER_CHANGEABLE
 		
-//	if (g_int_timeout > 1000)
+	if (g_int_timeout > 1000)
 		g_int_timeout = 200;
 	
 	if (g_keep_mode >= KEEP_COUNT)
 		g_keep_mode = KEEP_CURRENT;
 	
 	if (g_autosearch_mode >= AUTOSEARCH_COUNT)
-		g_autosearch_mode = AUTOSEARCH_OFF;
+		g_autosearch_mode = AUTOSEARCH_ON;
 		
 	g_fault_interrupts_mode = FAULT_INTERRUPTS_OFF; //-!
 	
@@ -1722,12 +1730,17 @@ void check_settings(void)
 //	adc_set_count(3, 400);
 	
 	if (PFC_OFF > g_pfc_mode || g_pfc_mode >= PFC_COUNT)
-		set_pfc_mode(PFC_OFF);
+		set_pfc_mode(PFC_AUTO);
 			
 	g_din[DIN_SIZE - 1] = 0;
 	
 	if (STARTBUTTON_OFF > g_startbutton_mode || g_startbutton_mode >= STARTBUTTON_COUNT)
 		g_startbutton_mode = STARTBUTTON_OFF;
+
+#ifndef _STARTBUTTON_ENABLED
+	g_startbutton_mode = STARTBUTTON_OFF;
+#endif // ! _STARTBUTTON_ENABLED
+		
 }
 
 void menu_int_timeout(void)
