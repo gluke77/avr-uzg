@@ -51,7 +51,9 @@ void menu_items_init(void)
 	menu_items[MENU_MODE_WORK][idx++] = menu_power;
 #endif // _POWER_CHANGEABLE
 //	menu_items[MENU_MODE_WORK][idx++] = menu_mult;	
+#ifdef _BIAS_CHANGEABLE
 	menu_items[MENU_MODE_WORK][idx++] = menu_current;	
+#endif // _BIAS_CHANGEABLE
 	menu_items[MENU_MODE_WORK][idx++] = menu_amp;
 	menu_items[MENU_MODE_WORK][idx++] = menu_temp;
 	menu_items[MENU_MODE_WORK][idx++] = menu_temp2;
@@ -72,10 +74,12 @@ void menu_items_init(void)
 	
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_freq_upper;
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_freq_lower;
-	
+
+#ifdef _BIAS_CHANGEABLE
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_max_bias_pwm;
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_min_bias_pwm;	
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_bias_pwm_base;
+#endif _BIAS_CHANGEABLE
 #ifdef _BIAS_SHIFT_CHANGEABLE
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_bias_pwm_shift;
 #endif // _BIAS_SHIFT_CHANGEABLE
@@ -93,6 +97,7 @@ void menu_items_init(void)
 
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_pfc_mode;
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_autosearch_mode;
+	menu_items[MENU_MODE_SETTINGS][idx++] = menu_startbutton;
 #ifdef _KEEP_CHANGEABLE
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_keep_mode;
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_keep_step;
@@ -141,19 +146,23 @@ void menu_common(void)
 
 	if (KEY_PRESSED(KEY_RUN))
 	{
-		start();
+		if (STARTBUTTON_OFF == g_startbutton_mode)
+			start();
 		CLEAR_KEY_PRESSED(KEY_RUN);
 	}
 
 	if (KEY_PRESSED(KEY_STOP))
 	{
-		if (IS_UZG_RUN)
-			stop(STOP_BUTTON);
-		else
+		if (STARTBUTTON_OFF == g_startbutton_mode)
 		{
-			g_bias_alarm = 0;
-			g_pwm_alarm = 0;
-			stop(STOP_NOT_CHANGE);
+			if (IS_UZG_RUN)
+				stop(STOP_BUTTON);
+			else
+			{
+				g_bias_alarm = 0;
+				g_pwm_alarm = 0;
+				stop(STOP_NOT_CHANGE);
+			}
 		}
 		CLEAR_KEY_PRESSED(KEY_STOP);
 	}
@@ -470,7 +479,7 @@ void menu_max_power_pwm(void)
 
 	if (KEY_PRESSED(KEY_RIGHT))
 	{
-		if (99 > g_max_power_pwm)
+		if (POWER_PWM_MAX > g_max_power_pwm)
 			g_max_power_pwm++;
 
 		CLEAR_KEY_PRESSED(KEY_RIGHT);
@@ -486,7 +495,7 @@ void menu_min_power_pwm(void)
 {
 	if (KEY_PRESSED(KEY_LEFT))
 	{
-		if (69 < g_min_power_pwm)
+		if (POWER_PWM_MIN < g_min_power_pwm)
 			g_min_power_pwm--;
 
 		CLEAR_KEY_PRESSED(KEY_LEFT);
@@ -508,8 +517,6 @@ void menu_min_power_pwm(void)
 	
 	menu_common();
 }
-
-
 
 void menu_mult(void)
 {
@@ -728,12 +735,15 @@ void menu_search(void)
 	if (bias < 0.)
 		bias = 0.;
 	
+#ifdef _BIAS_CHANGEABLE
 	sprintf(lcd_line1, "F=%-5ld C:%-4.2f T:%-3.2f     ",
 		g_dds_freq, curr, bias);
-	
+#else
+	sprintf(lcd_line1, "   F=%-5ld C:%-4.2f           ",
+		g_dds_freq, curr);
+#endif // _BIAS_CHANGEABLE
 	menu_common();
 }
-
 
 void menu_adc0_count(void)
 {
@@ -1326,9 +1336,14 @@ void loadFromEE(void)
 {
 	int i;
 
+	g_freq_supermax = eeprom_read_word(SUPERMAX_FREQ_ADDR);
+	g_freq_supermin = eeprom_read_word(SUPERMIN_FREQ_ADDR);
+	
 	g_freq_upper = (uint32_t)eeprom_read_word(FREQ_UPPER_ADDR);
 	g_freq_lower = (uint32_t)eeprom_read_word(FREQ_LOWER_ADDR);
-	dds_setfreq((uint32_t)eeprom_read_word(FREQ_ADDR));
+	g_dds_freq = (uint32_t)eeprom_read_word(FREQ_ADDR);
+	dds_setfreq(g_dds_freq);
+		
 	g_bias_pwm_base = eeprom_read_byte(PWM_BASE_ADDR);
 	g_bias_pwm_shift = eeprom_read_byte(PWM_SHIFT_ADDR);
 	
@@ -1385,8 +1400,7 @@ void loadFromEE(void)
 	g_adc_bias_multiplier = eeprom_read_byte(ADC_BIAS_MULTIPLIER_ADDR);
 	g_adc_feedback_multiplier = eeprom_read_byte(ADC_FEEDBACK_MULTIPLIER_ADDR);
 	
-	g_freq_supermax = eeprom_read_word(SUPERMAX_FREQ_ADDR);
-	g_freq_supermin = eeprom_read_word(SUPERMIN_FREQ_ADDR);
+	g_startbutton_mode = eeprom_read_byte(STARTBUTTON_MODE_ADDR);
 	
 }
 
@@ -1432,6 +1446,8 @@ void storeToEE(void)
 	eeprom_write_byte(AUTOSEARCH_MODE_ADDR, g_autosearch_mode);
 	eeprom_write_byte(FAULT_INTERRUPTS_MODE_ADDR, g_fault_interrupts_mode);
 	
+	eeprom_write_byte(STARTBUTTON_MODE_ADDR, g_startbutton_mode);
+	
 //	eeprom_write_word(BIAS_PWM_MULTIPLIER_ADDR, g_bias_pwm_multiplier);
 //	eeprom_write_byte(ADC_MULTIPLIER_ADDR, g_adc_multiplier);
 }
@@ -1439,7 +1455,7 @@ void storeToEE(void)
 void reset_settings(void)
 {
 
-	g_freq_upper = 19900;
+	g_freq_upper = 37000;
 
 	if (g_freq_upper > g_freq_supermax)
 		g_freq_upper = g_freq_supermax;
@@ -1447,7 +1463,7 @@ void reset_settings(void)
 	if (g_freq_upper < g_freq_supermin)
 		g_freq_upper = g_freq_supermin;
 		
-	g_freq_lower = 19600;
+	g_freq_lower = 35000;
 
 	if (g_freq_lower < g_freq_supermin)
 		g_freq_lower = g_freq_supermin;
@@ -1468,9 +1484,9 @@ void reset_settings(void)
 	g_bias_pwm_shift = 0;
 	
 	g_int_timeout = 200;
-	g_keep_mode = KEEP_CURRENT;
+	g_keep_mode = KEEP_OFF;
 	
-	g_autosearch_mode = AUTOSEARCH_ON;
+	g_autosearch_mode = AUTOSEARCH_OFF;
 	g_fault_interrupts_mode = FAULT_INTERRUPTS_OFF;
 	
 	g_keep_freq_step = 5;
@@ -1502,8 +1518,10 @@ void reset_settings(void)
 	g_power_pwm_base = 95;
 	g_power_pwm_shift = 0;
 
-	g_max_power_pwm = 99;
-	g_min_power_pwm = 69;
+	g_max_power_pwm = POWER_PWM_MAX;
+	g_min_power_pwm = POWER_PWM_MIN;
+	
+	g_startbutton_mode = STARTBUTTON_ON;
 }
 
 void check_settings(void)
@@ -1572,7 +1590,8 @@ void check_settings(void)
 	if (g_freq_lower > g_freq_upper)
 		g_freq_lower = g_freq_supermin;
 
-	dds_setfreq((g_freq_upper + g_freq_lower) / 2);
+	if (g_dds_freq > g_freq_upper || g_dds_freq < g_freq_lower)
+		dds_setfreq((g_freq_upper + g_freq_lower) / 2);
 
 	if (g_supermax_bias_pwm > 100)
 	{
@@ -1599,11 +1618,11 @@ void check_settings(void)
 		g_bias_pwm_shift = g_max_bias_pwm - g_bias_pwm_base;
 
 #ifdef _POWER_CHANGEABLE		
-	if (99 < g_max_power_pwm || 69 > g_max_power_pwm)
-		g_max_power_pwm = 99;
+	if (POWER_PWM_MAX < g_max_power_pwm || POWER_PWM_MIN > g_max_power_pwm)
+		g_max_power_pwm = POWER_PWM_MAX;
 
-	if (69 > g_min_power_pwm || g_max_power_pwm < g_min_power_pwm)
-		g_min_power_pwm = 69;
+	if (POWER_PWM_MIN > g_min_power_pwm || g_max_power_pwm < g_min_power_pwm)
+		g_min_power_pwm = POWER_PWM_MIN;
 
 	if (g_min_power_pwm > g_max_power_pwm)
 		g_min_power_pwm = g_max_power_pwm;
@@ -1617,8 +1636,8 @@ void check_settings(void)
 	if (g_power_pwm_shift > g_max_power_pwm - g_power_pwm_base)
 		g_power_pwm_shift = g_max_power_pwm - g_power_pwm_base;
 #else // _POWER_CHANGEABLE
-	g_max_power_pwm = 99;
-	g_min_power_pwm = 69;
+	g_max_power_pwm = POWER_PWM_MAX;
+	g_min_power_pwm = POWER_PWM_MIN;
 	g_power_pwm_base = 95;
 	g_power_pwm_shift = 0;
 #endif // _POWER_CHANGEABLE
@@ -1630,7 +1649,7 @@ void check_settings(void)
 		g_keep_mode = KEEP_CURRENT;
 	
 	if (g_autosearch_mode >= AUTOSEARCH_COUNT)
-		g_autosearch_mode = AUTOSEARCH_ON;
+		g_autosearch_mode = AUTOSEARCH_OFF;
 		
 	g_fault_interrupts_mode = FAULT_INTERRUPTS_OFF; //-!
 	
@@ -1674,6 +1693,9 @@ void check_settings(void)
 		set_pfc_mode(PFC_AUTO);
 			
 	g_din[DIN_SIZE - 1] = 0;
+	
+	if (STARTBUTTON_OFF > g_startbutton_mode || g_startbutton_mode >= STARTBUTTON_COUNT)
+		g_startbutton_mode = STARTBUTTON_OFF;
 }
 
 void menu_int_timeout(void)
@@ -1849,7 +1871,6 @@ void menu_temp2_stop(void)
 	menu_common();
 }
 
-
 char	stop_mode_str[6][15] = {"BUTTON", "485", "OVERHEAT 1", "OVERHEAT 2", "FREQUENCY O/L", "CURRENT O/L"};
 
 void menu_stop_mode(void)
@@ -1870,3 +1891,30 @@ void menu_din(void)
 	menu_common();
 }
 
+char	startbutton_mode_str[STARTBUTTON_COUNT][5] = {"OFF", "ON"};
+
+void menu_startbutton(void)
+{
+	if (KEY_PRESSED(KEY_LEFT))
+	{
+		if (STARTBUTTON_OFF == g_startbutton_mode)
+			g_startbutton_mode = STARTBUTTON_COUNT;
+		g_startbutton_mode--;
+
+		CLEAR_KEY_PRESSED(KEY_LEFT);
+	}
+
+	if (KEY_PRESSED(KEY_RIGHT))
+	{
+		g_startbutton_mode++;
+	
+		if (STARTBUTTON_COUNT <= g_startbutton_mode)
+			g_startbutton_mode = STARTBUTTON_OFF;
+
+		CLEAR_KEY_PRESSED(KEY_RIGHT);
+	}
+		
+	sprintf(lcd_line1, "REMOTE BUTTON:%-6s", startbutton_mode_str[g_startbutton_mode]);
+	
+	menu_common();
+}

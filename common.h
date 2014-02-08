@@ -9,7 +9,7 @@
 #include <inttypes.h>
 #include <util/delay.h>
 
-#define FW_VERSION	("20101129")
+#define FW_VERSION	("20110205")
 
 #define TRUE 1
 #define FALSE 0
@@ -129,6 +129,16 @@ typedef enum
 
 extern stop_mode_e g_stop_mode;
 
+typedef enum
+{
+	STARTBUTTON_OFF = 0,
+	STARTBUTTON_ON,
+	STARTBUTTON_COUNT
+} startbutton_mode_e;
+
+extern startbutton_mode_e g_startbutton_mode;
+
+
 extern int8_t		g_keep_freq_step;
 extern int8_t		g_keep_freq_max_delta;
 
@@ -197,12 +207,13 @@ extern	char	g_din[DIN_SIZE];
 #define TEMP2_ALARM_ADDR	(78)
 #define TEMP2_STOP_ADDR	(80)
 
-// next addr 82
+#define STARTBUTTON_MODE_ADDR	(82)
 
-// #define _NARROW_FREQ
+// next addr 83
 
-#define _POWER_CHANGEABLE
-#define _BIAS_SHIFT_CHANGEABLE
+#undef _NARROW_FREQ
+#undef _BIAS_CHANGEABLE
+#undef _BIAS_SHIFT_CHANGEABLE
 #define _POWER_CHANGEABLE
 #define _KEEP_CHANGEABLE
 

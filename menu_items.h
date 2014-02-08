@@ -75,4 +75,6 @@ void menu_stop_mode(void);
 void menu_version(void);
 void menu_din(void);
 
+void menu_startbutton(void);
+
 #endif /* _MENU_ITEMS_INCLUDED */

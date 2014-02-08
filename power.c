@@ -7,8 +7,8 @@ uint8_t		g_power_pwm;
 uint8_t		g_power_pwm_step = 1;
 uint8_t		g_power_pwm_base;
 uint8_t		g_power_pwm_shift;
-uint8_t		g_max_power_pwm = 99;
-uint8_t		g_min_power_pwm = 0;
+uint8_t		g_max_power_pwm = POWER_PWM_MAX;
+uint8_t		g_min_power_pwm = POWER_PWM_MIN;
 
 void set_power_on(void)
 {
