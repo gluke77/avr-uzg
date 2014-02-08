@@ -150,7 +150,7 @@ int main(void)
 		else if (g_temp_stop < temp_value())
 			sprintf(lcd_line0, "OVERHEAT            ");
 		else
-			sprintf(lcd_line0, "  UZG-%s  PC-%s  ", 
+			sprintf(lcd_line0, "  UZG-%s PFC-%s  ", 
 				(IS_UZG_RUN)?"ON  ":"OFF ", (IS_PFC_RUN)?"ON  ":"OFF ");
 
 		do_lcd();

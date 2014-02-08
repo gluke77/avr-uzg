@@ -1328,7 +1328,7 @@ void reset_settings(void)
 	g_freq_lower = 21250;
 	dds_setfreq(21350);
 
-	g_bias_pwm_base = 100;
+	g_bias_pwm_base = 50;
 	g_bias_pwm_shift = 0;
 	
 	g_int_timeout = 200;
