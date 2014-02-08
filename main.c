@@ -39,7 +39,7 @@ extern uint8_t		g_autosearch_running;
 extern uint8_t		g_menu_search_auto_idx;
 extern uint16_t	g_int_timeout;
 
-#define DELTA_ZERO_COUNT	(3)
+#define DELTA_ZERO_COUNT	(1)
 
 char	buf[50];
 
@@ -548,7 +548,8 @@ void do_keep_resonance(void)
 		timer_id = start_timer(g_int_timeout + adc_get_timeout(ADC_CURRENT));
 		beep_ms(100);
 	}
-	else if (0 == timer_value(timer_id))
+//	else if (0 == timer_value(timer_id))
+	else if ((0 == timer_value(timer_id)) || (0 == timer_id))
 	{
 		stop_timer(timer_id);
 		timer_id = 0;
@@ -562,6 +563,14 @@ void do_keep_resonance(void)
 		
 			if (delta > max_delta)
 			{
+				if (integral > step * max_delta)
+					integral = step * max_delta;
+				else if (integral < - step * max_delta)
+					integral = - step * max_delta;
+					
+				delta = integral;
+
+/*
 				if ((0 < integral) && (integral < sum_value))
 					delta = 1;
 				else if ((-sum_value < integral) && (integral < 0))
@@ -570,7 +579,7 @@ void do_keep_resonance(void)
 					delta = 0;
 				else
 					delta = integral / sum_value;
-			
+*/			
 				dds_setfreq(old_freq + delta);
 				looking_up_freq = 0;
 				
@@ -591,7 +600,8 @@ void do_keep_resonance(void)
 				timer_id = start_timer(g_int_timeout + adc_get_timeout(ADC_CURRENT));
 			}
 		}
-		else if (looking_up_bias_pwm)
+		
+		if (looking_up_bias_pwm)
 		{
 			if (KEEP_CURRENT == g_current_keep_mode)
 			{
