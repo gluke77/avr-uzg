@@ -1,0 +1,6 @@
+*.pnproj
+*.pnps
+.dep
+*.eep
+*.elf
+readme
