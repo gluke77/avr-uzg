@@ -1463,8 +1463,8 @@ void reset_settings(void)
 	g_autosearch_mode = AUTOSEARCH_OFF;
 	g_fault_interrupts_mode = FAULT_INTERRUPTS_OFF;
 	
-	g_keep_freq_step = 1;
-	g_keep_freq_max_delta = 5;
+	g_keep_freq_step = 5;
+	g_keep_freq_max_delta = 1;
 	
 	g_max_bias_pwm = 255;
 	g_min_bias_pwm = 10;
