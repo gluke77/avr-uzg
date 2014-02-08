@@ -146,7 +146,7 @@ void menu_common(void)
 
 void menu_freq(void)
 {
-	sprintf(lcd_line1, "вюярнрю=%-12ld  ", g_dds_freq);
+	sprintf(lcd_line1, "FREQUENCY= %-9ld  ", g_dds_freq);
 
 	if (KEY_PRESSED(KEY_RIGHT))
 	{
@@ -210,14 +210,14 @@ void menu_amp(void)
 	amp = adc_value(ADC_AMP);
 	sei();
 	
-	sprintf(lcd_line1, "юлокхрсдю:%-10d", amp);
+	sprintf(lcd_line1, "AMPLITUDE:%-10d", amp);
 	
 	menu_common();
 }
 
 void menu_temp(void)
 {
-	sprintf(lcd_line1, "релоепюрспю:%.1fC               ", temp_value());
+	sprintf(lcd_line1, "TEMPERATURE:%.1fC               ", temp_value());
 	
 	menu_common();
 }
@@ -257,7 +257,7 @@ void menu_freq_step(void)
 
 void menu_current(void)
 {
-	sprintf(lcd_line1, "рнй=%.2fA            ", bias_pwm_to_current(g_bias_pwm));
+	sprintf(lcd_line1, "CURRENT= %.2fA            ", bias_pwm_to_current(g_bias_pwm));
 
 	if (KEY_PRESSED(KEY_RIGHT))
 	{
@@ -292,7 +292,7 @@ void menu_current(void)
 
 void menu_power(void)
 {
-	sprintf(lcd_line1, "лнымнярэ=%2d%%            ", g_power_pwm + 1);
+	sprintf(lcd_line1, "POWER= %2d%%               ", g_power_pwm + 1);
 
 	if (KEY_PRESSED(KEY_RIGHT))
 	{
@@ -323,7 +323,7 @@ void menu_power(void)
 
 void menu_bias_pwm_base(void)
 {
-	sprintf(lcd_line1, "мювюкэмши рнй=%.2fA     ", bias_pwm_to_current(g_bias_pwm_base));
+	sprintf(lcd_line1, "START CURRENT= %.2fA     ", bias_pwm_to_current(g_bias_pwm_base));
 
 	if (KEY_PRESSED(KEY_RIGHT))
 	{
@@ -351,7 +351,7 @@ void menu_bias_pwm_base(void)
 
 void menu_bias_pwm_shift(void)
 {
-	sprintf(lcd_line1, "днаюбйю рнйю=%.2fA       ", bias_pwm_to_current(g_bias_pwm_shift));
+	sprintf(lcd_line1, "ADD. CURRENT= %.2fA       ", bias_pwm_to_current(g_bias_pwm_shift));
 
 	if (KEY_PRESSED(KEY_RIGHT))
 	{
@@ -378,7 +378,7 @@ void menu_bias_pwm_shift(void)
 
 void menu_power_pwm_base(void)
 {
-	sprintf(lcd_line1, "мюв. лнымнярэ=%2d%%   ", g_power_pwm_base + 1);
+	sprintf(lcd_line1, "START POWER= %2d%%     ", g_power_pwm_base + 1);
 
 	if (KEY_PRESSED(KEY_RIGHT))
 	{
@@ -406,7 +406,7 @@ void menu_power_pwm_base(void)
 
 void menu_power_pwm_shift(void)
 {
-	sprintf(lcd_line1, "днаюбйю лнымнярх=%2d%%   ", g_power_pwm_shift);
+	sprintf(lcd_line1, "ADD. POWER= %2d%%       ", g_power_pwm_shift);
 
 	if (KEY_PRESSED(KEY_RIGHT))
 	{
@@ -453,7 +453,7 @@ void menu_max_power_pwm(void)
 		CLEAR_KEY_PRESSED(KEY_RIGHT);
 	}
 		
-	sprintf(lcd_line1, "люйя. лнымнярэ=%d%%  ", g_max_power_pwm + 1);
+	sprintf(lcd_line1, "MAX POWER= %d%%       ", g_max_power_pwm + 1);
 	
 	menu_common();
 }
@@ -481,7 +481,7 @@ void menu_min_power_pwm(void)
 		CLEAR_KEY_PRESSED(KEY_RIGHT);
 	}
 		
-	sprintf(lcd_line1, "лхм. лнымнярэ=%d%%    ", g_min_power_pwm + 1);
+	sprintf(lcd_line1, "MIN POWER= %d%%         ", g_min_power_pwm + 1);
 	
 	menu_common();
 }
@@ -600,7 +600,7 @@ void menu_search_auto(void)
 					current = adc_mean_value(ADC_CURRENT);
 					sei();
 
-					sprintf(lcd_line1, "онхяй F:%-5ld C:%-4.2f", g_dds_freq, adc_to_current(current));
+					sprintf(lcd_line1, "SEARCH F:%-5ld C:%-4.2f", g_dds_freq, adc_to_current(current));
 
 					if (current > max_current)
 					{
@@ -631,7 +631,7 @@ void menu_search_auto(void)
 	}
 	else
 	{
-		sprintf(lcd_line1, "мювюрэ юбрнонхяй    ");
+		sprintf(lcd_line1, "START SEARCH        ");
 		menu_common();
 	}
 }
@@ -641,6 +641,9 @@ void menu_search(void)
 	int16_t		current_value = 0;
 	int16_t		bias_value = 0;
 	int16_t		amp_value = 0;
+	
+	float		curr = 0.;
+	float		bias = 0.;
 		
 	if (KEY_PRESSED(KEY_RIGHT))
 	{
@@ -670,10 +673,16 @@ void menu_search(void)
 	bias_value = adc_mean_value(ADC_BIASCURRENT);
 //	amp_value = adc_mean_value(ADC_AMP);
 	
+	curr = adc_to_current(current_value);
+	if (curr < 0.)
+		curr = 0.;
+	
+	bias = adc_to_current(bias_value);
+	if (bias < 0.)
+		bias = 0.;
+	
 	sprintf(lcd_line1, "F=%-5ld C:%-4.2f T:%-3.2f     ",
-		g_dds_freq,
-		adc_to_current(current_value),
-		adc_to_current(bias_value));
+		g_dds_freq, curr, bias);
 	
 	menu_common();
 }
@@ -695,7 +704,7 @@ void menu_adc0_count(void)
 		CLEAR_KEY_PRESSED(KEY_LEFT);
 	}
 		
-	sprintf(lcd_line1, "ADC_REPEAT0=%-8d", adc_get_count(0));
+	sprintf(lcd_line1, "ADC_REPEAT0= %-7d", adc_get_count(0));
 
 	menu_common();
 }
@@ -716,7 +725,7 @@ void menu_adc0_delay(void)
 		CLEAR_KEY_PRESSED(KEY_LEFT);
 	}
 		
-	sprintf(lcd_line1, "ADC_DELAY0=%-9d", adc_get_delay(0));
+	sprintf(lcd_line1, "ADC_DELAY0= %-8d", adc_get_delay(0));
 
 	menu_common();
 }
@@ -737,7 +746,7 @@ void menu_adc1_count(void)
 		CLEAR_KEY_PRESSED(KEY_LEFT);
 	}
 		
-	sprintf(lcd_line1, "ADC_REPEAT1=%-8d", adc_get_count(1));
+	sprintf(lcd_line1, "ADC_REPEAT1= %-7d", adc_get_count(1));
 
 	menu_common();
 }
@@ -758,7 +767,7 @@ void menu_adc1_delay(void)
 		CLEAR_KEY_PRESSED(KEY_LEFT);
 	}
 		
-	sprintf(lcd_line1, "ADC_DELAY1=%-9d", adc_get_delay(1));
+	sprintf(lcd_line1, "ADC_DELAY1= %-8d", adc_get_delay(1));
 
 	menu_common();
 }
@@ -779,7 +788,7 @@ void menu_adc2_count(void)
 		CLEAR_KEY_PRESSED(KEY_LEFT);
 	}
 		
-	sprintf(lcd_line1, "ADC_REPEAT2=%-8d", adc_get_count(2));
+	sprintf(lcd_line1, "ADC_REPEAT2= %-7d", adc_get_count(2));
 
 	menu_common();
 }
@@ -800,7 +809,7 @@ void menu_adc2_delay(void)
 		CLEAR_KEY_PRESSED(KEY_LEFT);
 	}
 		
-	sprintf(lcd_line1, "ADC_DELAY2=%-9d", adc_get_delay(2));
+	sprintf(lcd_line1, "ADC_DELAY2= %-8d", adc_get_delay(2));
 
 	menu_common();
 }
@@ -821,7 +830,7 @@ void menu_adc3_count(void)
 		CLEAR_KEY_PRESSED(KEY_LEFT);
 	}
 		
-	sprintf(lcd_line1, "ADC_REPEAT3=%-8d", adc_get_count(3));
+	sprintf(lcd_line1, "ADC_REPEAT3= %-7d", adc_get_count(3));
 
 	menu_common();
 }
@@ -842,7 +851,7 @@ void menu_adc3_delay(void)
 		CLEAR_KEY_PRESSED(KEY_LEFT);
 	}
 		
-	sprintf(lcd_line1, "ADC_DELAY3=%-9d", adc_get_delay(3));
+	sprintf(lcd_line1, "ADC_DELAY3= %-8d", adc_get_delay(3));
 
 	menu_common();
 }
@@ -872,7 +881,7 @@ void menu_freq_lower(void)
 		CLEAR_KEY_PRESSED(KEY_RIGHT);
 	}
 		
-	sprintf(lcd_line1, "лхмхлюкэмюъ F=%-6ld", g_freq_lower);
+	sprintf(lcd_line1, "MIN FREQ= %ldHz    ", g_freq_lower);
 
 	menu_common();
 }
@@ -902,12 +911,12 @@ void menu_freq_upper(void)
 		CLEAR_KEY_PRESSED(KEY_RIGHT);
 	}
 		
-	sprintf(lcd_line1, "люйяхлюкэмюъ F=%-5ld", g_freq_upper);
+	sprintf(lcd_line1, "MAX FREQ= %ldHz    ", g_freq_upper);
 
 	menu_common();
 }
 
-char	pfc_mode_str[PFC_COUNT][5] = {"", "бшйк", "бйк", "юбрн"};
+char	pfc_mode_str[PFC_COUNT][5] = {"", "OFF", "ON", "AUTO"};
 
 void menu_pfc_mode(void)
 {
@@ -931,14 +940,14 @@ void menu_pfc_mode(void)
 		CLEAR_KEY_PRESSED(KEY_RIGHT);
 	}
 		
-	sprintf(lcd_line1, "йл:%-17s", pfc_mode_str[g_pfc_mode]);
+	sprintf(lcd_line1, "PC:%-17s", pfc_mode_str[g_pfc_mode]);
 	
 	set_pfc_mode(g_pfc_mode);
 	
 	menu_common();
 }
 
-char	keep_mode_str[KEEP_COUNT][5] = {"","бшйк", "рнй", "юло."};
+char	keep_mode_str[KEEP_COUNT][5] = {"","OFF", "CURR.", "AMP."};
 
 void menu_keep_mode(void)
 {
@@ -972,7 +981,7 @@ void menu_keep_mode(void)
 		CLEAR_KEY_PRESSED(KEY_RIGHT);
 	}
 		
-	sprintf(lcd_line1, "юбрнондярпнийю:%-5s", keep_mode_str[g_keep_mode]);
+	sprintf(lcd_line1, "AUTOADJUST:%-9s", keep_mode_str[g_keep_mode]);
 	
 	menu_common();
 }
@@ -998,7 +1007,7 @@ void menu_autosearch_mode(void)
 		CLEAR_KEY_PRESSED(KEY_RIGHT);
 	}
 		
-	sprintf(lcd_line1, "онхяй опх осяйе:%-4s",	(AUTOSEARCH_ON == g_autosearch_mode)?"бйк":"бшйк");
+	sprintf(lcd_line1, "SEARCH AT START:%-4s",	(AUTOSEARCH_ON == g_autosearch_mode)?"ON":"OFF");
 	
 	menu_common();
 }
@@ -1024,7 +1033,7 @@ void menu_fault_interrupts(void)
 		CLEAR_KEY_PRESSED(KEY_RIGHT);
 	}
 		
-	sprintf(lcd_line1, "гюыхрю:%-13s",	(FAULT_INTERRUPTS_ON == g_fault_interrupts_mode)?"бйк":"бшйк");
+	sprintf(lcd_line1, "PROTECTION:%-9s",	(FAULT_INTERRUPTS_ON == g_fault_interrupts_mode)?"ON":"OFF");
 
 	fault_interrupts_init(g_fault_interrupts_mode);
 	
@@ -1050,7 +1059,7 @@ void menu_keep_step(void)
 		CLEAR_KEY_PRESSED(KEY_RIGHT);
 	}
 		
-	sprintf(lcd_line1, "ьюц юбрнондярп.=%-4d", g_keep_freq_step);
+	sprintf(lcd_line1, "SEARCH STEP= %-7d", g_keep_freq_step);
 	
 	menu_common();
 }
@@ -1073,7 +1082,7 @@ void menu_keep_delta(void)
 		CLEAR_KEY_PRESSED(KEY_RIGHT);
 	}
 		
-	sprintf(lcd_line1, "дхюо. юбрнондярп.=%-2d", g_keep_freq_max_delta);
+	sprintf(lcd_line1, "SEARCH RANGE= %-6d", g_keep_freq_max_delta);
 	
 	menu_common();
 }
@@ -1099,7 +1108,7 @@ void menu_max_bias_pwm(void)
 		CLEAR_KEY_PRESSED(KEY_RIGHT);
 	}
 		
-	sprintf(lcd_line1, "люйя. рнй=%-4.2f        ",
+	sprintf(lcd_line1, "MAX CURRENT= %-4.2fA   ",
 		bias_pwm_to_current(g_max_bias_pwm));
 	
 	menu_common();
@@ -1127,7 +1136,7 @@ void menu_min_bias_pwm(void)
 		CLEAR_KEY_PRESSED(KEY_RIGHT);
 	}
 		
-	sprintf(lcd_line1, "лхм. рнй=%-4.2f               ",
+	sprintf(lcd_line1, "MIN CURRENT= %-4.2fA  ",
 		bias_pwm_to_current(g_min_bias_pwm));
 	
 	menu_common();
@@ -1139,14 +1148,14 @@ void menu_store_settings(void)
 	if (KEY_PRESSED(KEY_ENTER))
 	{
 		storeToEE();
-		sprintf(lcd_line1, "мюярпнийх янупюмемш ");
+		sprintf(lcd_line1, "SETTINGS SAVED      ");
 		do_lcd();
 		beep_ms(500);
 	
 		CLEAR_KEY_PRESSED(KEY_ENTER);
 	}
 	
-	sprintf(lcd_line1, "янупюмхрэ мюярпнийх ");
+	sprintf(lcd_line1, "SAVE SETTINGS       ");
 	
 	menu_common();
 }
@@ -1157,14 +1166,14 @@ void menu_reset_settings(void)
 	{
 		reset_settings();
 		storeToEE();
-		sprintf(lcd_line1, "мюярпнийх он слнкв. ");
+		sprintf(lcd_line1, "DEFAULT SETTINGS    ");
 		do_lcd();
 		beep_ms(500);
 	
 		CLEAR_KEY_PRESSED(KEY_ENTER);
 	}
 	
-	sprintf(lcd_line1, "яапняхрэ мюярпнийх  ");
+	sprintf(lcd_line1, "RESET SETTINGS      ");
 	
 	menu_common();
 }
@@ -1335,7 +1344,7 @@ void reset_settings(void)
 
 void menu_int_timeout(void)
 {
-	sprintf(lcd_line1, "хмрецп. гюдепфйю=%-3d", g_int_timeout);
+	sprintf(lcd_line1, "INTEGR. TIMEOUT= %-3d", g_int_timeout);
 
 	if (KEY_PRESSED(KEY_RIGHT))
 	{
@@ -1356,7 +1365,7 @@ void menu_int_timeout(void)
 
 void menu_modbus_id(void)
 {
-	sprintf(lcd_line1, "юдпея=%-14d", g_modbus_id);
+	sprintf(lcd_line1, "DEVICE ADDRESS= %-4d", g_modbus_id);
 
 	if (KEY_PRESSED(KEY_RIGHT))
 	{
@@ -1385,7 +1394,7 @@ void menu_baudrate(void)
 		if (g_baudrate == baud[idx])
 			break;
 	
-	sprintf(lcd_line1, "яйнпнярэ=%-11ld", g_baudrate);
+	sprintf(lcd_line1, "BAUDRATE= %-10ld", g_baudrate);
 
 	if (KEY_PRESSED(KEY_RIGHT))
 	{
@@ -1430,7 +1439,7 @@ void menu_temp_alarm(void)
 		CLEAR_KEY_PRESSED(KEY_RIGHT);
 	}
 		
-	sprintf(lcd_line1, "рело. йпхрхв.=%-dя     ", g_temp_alarm);
+	sprintf(lcd_line1, "CRITICAL TEMP.= %-dя   ", g_temp_alarm);
 	
 	menu_common();
 }
@@ -1453,22 +1462,22 @@ void menu_temp_stop(void)
 		CLEAR_KEY_PRESSED(KEY_RIGHT);
 	}
 		
-	sprintf(lcd_line1, "рело. нярюмнбю=%-dя    ", g_temp_stop);
+	sprintf(lcd_line1, "STOP TEMP.= %-dя      ", g_temp_stop);
 	
 	menu_common();
 }
 
-char	stop_mode_str[5][15] = {"оскэр", "485", "оепецпеб", "оепецп. он F", "оепецп. он рнйс"};
+char	stop_mode_str[5][15] = {"BUTTON", "485", "OVERHEAT", "FREQUENCY O/L", "CURRENT O/L"};
 
 void menu_stop_mode(void)
 {
-	sprintf(lcd_line1, "ярно:%-15s", stop_mode_str[(uint8_t)g_stop_mode]);
+	sprintf(lcd_line1, "STOP:%-15s", stop_mode_str[(uint8_t)g_stop_mode]);
 	menu_common();
 }
 
 void menu_version(void)
 {
-	sprintf(lcd_line1, "бепяхъ он:%-10s", FW_VERSION);
+	sprintf(lcd_line1, "FW VERSION:%-10s", FW_VERSION);
 	menu_common();
 }
 

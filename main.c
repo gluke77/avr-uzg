@@ -127,27 +127,27 @@ int main(void)
 
 		if (g_bias_alarm)
 		{
-			sprintf(lcd_line0, "œ≈–≈√–”« ¿ œŒ “Œ ”  ");
+			sprintf(lcd_line0, "CURRENT OVERLOAD     ");
 
 			beep_ms(200);
 			delay_ms(200);
 		}
 		else if (g_pwm_alarm)
 		{
-			sprintf(lcd_line0, "œ≈–≈√–”« ¿ œŒ F     ");
+			sprintf(lcd_line0, "FREQUENCY OVERLOAD  ");
 
 			beep_ms(200);
 			delay_ms(200);
 		}
 		else if (TEST_FAULT_PWM)
-			sprintf(lcd_line0, "œ≈–≈√–”« ¿ œŒ F     ");
+			sprintf(lcd_line0, "FREQUENCY OVERLOAD  ");
 		else if (TEST_FAULT_BIAS)
-			sprintf(lcd_line0, "œ≈–≈√–”« ¿ œŒ “Œ ”  ");
+			sprintf(lcd_line0, "CURRENT OVERLOAD    ");
 		else if (g_temp_stop < temp_value())
-			sprintf(lcd_line0, "œ≈–≈√–≈¬ —»—“≈Ã€    ");
+			sprintf(lcd_line0, "OVERHEAT            ");
 		else
-			sprintf(lcd_line0, "”«√-%s   Ã-%s   ", 
-				(IS_UZG_RUN)?"¬ À ":"¬€ À", (IS_PFC_RUN)?"¬ À ":"¬€ À");
+			sprintf(lcd_line0, "  UZG-%s  PC-%s  ", 
+				(IS_UZG_RUN)?"ON  ":"OFF ", (IS_PFC_RUN)?"ON  ":"OFF ");
 
 		do_lcd();
 		do_temp();
@@ -404,7 +404,7 @@ void start(void)
 {
 	if (TEST_FAULT_PWM)
 	{
-		sprintf(lcd_line0, "œ≈–≈√–”« ¿ œŒ F     ");
+		sprintf(lcd_line0, "FREQUENCY OVERLOAD  ");
 		do_lcd();
 		beep_ms(200);
 		delay_ms(1000);
@@ -413,7 +413,7 @@ void start(void)
 		
 	if (TEST_FAULT_BIAS)
 	{
-		sprintf(lcd_line0, "œ≈–≈√–”« ¿ œŒ “Œ ”  ");
+		sprintf(lcd_line0, "CURRENT OVERLOAD    ");
 		do_lcd();
 		beep_ms(200);
 		delay_ms(1000);
@@ -422,7 +422,7 @@ void start(void)
 	
 	if (g_temp_alarm < temp_value())
 	{
-		sprintf(lcd_line0, "œ≈–≈√–≈¬ —»—“≈Ã€    ");
+		sprintf(lcd_line0, "OVERHEAT            ");
 		do_lcd();
 		beep_ms(200);
 		delay_ms(1000);

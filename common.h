@@ -4,7 +4,7 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
-#define FW_VERSION	("20071208")
+#define FW_VERSION	("20081223")
 
 #define TRUE 1
 #define FALSE 0
