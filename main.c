@@ -641,7 +641,7 @@ void do_timer(void)
 	//do_startbutton();
 }
 
-void usg_run(void)
+void uzg_run(void)
 {
 	dds_setfreq(g_dds_freq);
 	set_power_on();
@@ -701,7 +701,7 @@ void start(void)
 		_delay_ms(10);
 	}
 	
-	usg_run();
+	uzg_run();
 
 	if (AUTOSEARCH_ON == g_autosearch_mode)
 	{
