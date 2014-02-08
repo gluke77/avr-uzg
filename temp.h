@@ -9,8 +9,8 @@
 
 #define TEMP_TIMEOUT		(2000)
 
-extern uint16_t g_temp_alarm;
-extern uint16_t g_temp_stop;
+extern uint16_t g_temp_alarm[MAX_DS18X20_COUNT];
+extern uint16_t g_temp_stop[MAX_DS18X20_COUNT];
 
 //extern uint16_t g_temp_alarm2;
 //extern uint16_t g_temp_stop2;

@@ -9,7 +9,7 @@
 #include <inttypes.h>
 #include <util/delay.h>
 
-#define FW_VERSION	("20100921")
+#define FW_VERSION	("20101004")
 
 #define TRUE 1
 #define FALSE 0
@@ -119,7 +119,8 @@ typedef enum
 {
 	STOP_BUTTON = 0,
 	STOP_485,
-	STOP_TEMPERATURE,
+	STOP_TEMPERATURE1,
+	STOP_TEMPERATURE2,
 	STOP_FAULT_PWM,
 	STOP_FAULT_BIAS,
 	STOP_NOT_CHANGE,
@@ -192,6 +193,10 @@ extern	char	g_din[DIN_SIZE];
 
 #define SUPERMAX_FREQ_ADDR			(74)
 #define SUPERMIN_FREQ_ADDR			(76)
-// next addr 78
+
+#define TEMP2_ALARM_ADDR	(78)
+#define TEMP2_STOP_ADDR	(80)
+
+// next addr 82
 
 #endif /* __COMMON_H_INCLUDED_*/

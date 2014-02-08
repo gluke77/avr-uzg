@@ -67,6 +67,8 @@ void menu_baudrate(void);
 
 void menu_temp_alarm(void);
 void menu_temp_stop(void);
+void menu_temp2_alarm(void);
+void menu_temp2_stop(void);
 void menu_fault_interrupts(void);
 void menu_stop_mode(void);
 

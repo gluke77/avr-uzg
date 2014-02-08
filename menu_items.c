@@ -97,6 +97,8 @@ void menu_items_init(void)
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_keep_delta;	
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_temp_alarm;	
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_temp_stop;	
+	menu_items[MENU_MODE_SETTINGS][idx++] = menu_temp2_alarm;	
+	menu_items[MENU_MODE_SETTINGS][idx++] = menu_temp2_stop;	
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_fault_interrupts;	
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_modbus_id;	
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_baudrate;	
@@ -1348,8 +1350,11 @@ void loadFromEE(void)
 	
 	g_modbus_id = eeprom_read_byte(MODBUS_ID_ADDR);
 	
-	g_temp_alarm = eeprom_read_word(TEMP_ALARM_ADDR);
-	g_temp_stop = eeprom_read_word(TEMP_STOP_ADDR);
+	g_temp_alarm[0] = eeprom_read_word(TEMP_ALARM_ADDR);
+	g_temp_stop[0] = eeprom_read_word(TEMP_STOP_ADDR);
+	g_temp_alarm[1] = eeprom_read_word(TEMP2_ALARM_ADDR);
+	g_temp_stop[1] = eeprom_read_word(TEMP2_STOP_ADDR);
+
 	
 	g_power_pwm_base = eeprom_read_byte(POWER_PWM_BASE_ADDR);
 	g_power_pwm_shift = eeprom_read_byte(POWER_PWM_SHIFT_ADDR);
@@ -1408,8 +1413,12 @@ void storeToEE(void)
 	eeprom_write_word(BAUD_HI_ADDR, (uint16_t)(g_baudrate >> 16));
 	
 	eeprom_write_byte(MODBUS_ID_ADDR, g_modbus_id);
-	eeprom_write_word(TEMP_ALARM_ADDR, g_temp_alarm);
-	eeprom_write_word(TEMP_STOP_ADDR, g_temp_stop);
+	eeprom_write_word(TEMP_ALARM_ADDR, g_temp_alarm[0]);
+	eeprom_write_word(TEMP_STOP_ADDR, g_temp_stop[0]);
+
+	eeprom_write_word(TEMP2_ALARM_ADDR, g_temp_alarm[1]);
+	eeprom_write_word(TEMP2_STOP_ADDR, g_temp_stop[1]);
+
 
 	eeprom_write_byte(POWER_PWM_BASE_ADDR, g_power_pwm_base);
 	eeprom_write_byte(POWER_PWM_SHIFT_ADDR, g_power_pwm_shift);
@@ -1472,9 +1481,13 @@ void reset_settings(void)
 	g_baudrate = 115200;
 	g_modbus_id = 1;
 	
-	g_temp_alarm = 75;
-	g_temp_stop = 80;
+	g_temp_alarm[0] = 75;
+	g_temp_stop[0] = 80;
 	
+	g_temp_alarm[1] = 60;
+	g_temp_stop[1] = 65;
+
+
 	adc_set_delay(0, 1);
 	adc_set_count(0, 200);
 
@@ -1650,21 +1663,21 @@ void menu_temp_alarm(void)
 {
 	if (KEY_PRESSED(KEY_LEFT))
 	{
-		if (0 < g_temp_alarm)
-			g_temp_alarm--;
+		if (0 < g_temp_alarm[0])
+			g_temp_alarm[0]--;
 
 		CLEAR_KEY_PRESSED(KEY_LEFT);
 	}
 
 	if (KEY_PRESSED(KEY_RIGHT))
 	{
-		if (g_temp_stop > g_temp_alarm)
-			g_temp_alarm++;
+		if (g_temp_stop[0] > g_temp_alarm[0])
+			g_temp_alarm[0]++;
 
 		CLEAR_KEY_PRESSED(KEY_RIGHT);
 	}
 		
-	sprintf(lcd_line1, "CRITICAL TEMP.= %-d—   ", g_temp_alarm);
+	sprintf(lcd_line1, "CRIT. TEMP.1= %-d—   ", g_temp_alarm[0]);
 	
 	menu_common();
 }
@@ -1673,26 +1686,73 @@ void menu_temp_stop(void)
 {
 	if (KEY_PRESSED(KEY_LEFT))
 	{
-		if (g_temp_alarm < g_temp_stop)
-			g_temp_stop--;
+		if (g_temp_alarm[0] < g_temp_stop[0])
+			g_temp_stop[0]--;
 
 		CLEAR_KEY_PRESSED(KEY_LEFT);
 	}
 
 	if (KEY_PRESSED(KEY_RIGHT))
 	{
-		if (95 > g_temp_stop)
-			g_temp_stop++;
+		if (95 > g_temp_stop[0])
+			g_temp_stop[0]++;
 
 		CLEAR_KEY_PRESSED(KEY_RIGHT);
 	}
 		
-	sprintf(lcd_line1, "STOP TEMP.= %-d—      ", g_temp_stop);
+	sprintf(lcd_line1, "STOP TEMP.1= %-d—      ", g_temp_stop[0]);
 	
 	menu_common();
 }
 
-char	stop_mode_str[5][15] = {"BUTTON", "485", "OVERHEAT", "FREQUENCY O/L", "CURRENT O/L"};
+void menu_temp2_alarm(void)
+{
+	if (KEY_PRESSED(KEY_LEFT))
+	{
+		if (0 < g_temp_alarm[1])
+			g_temp_alarm[1]--;
+
+		CLEAR_KEY_PRESSED(KEY_LEFT);
+	}
+
+	if (KEY_PRESSED(KEY_RIGHT))
+	{
+		if (g_temp_stop[1] > g_temp_alarm[1])
+			g_temp_alarm[1]++;
+
+		CLEAR_KEY_PRESSED(KEY_RIGHT);
+	}
+		
+	sprintf(lcd_line1, "CRIT. TEMP.2= %-d—   ", g_temp_alarm[1]);
+	
+	menu_common();
+}
+
+void menu_temp2_stop(void)
+{
+	if (KEY_PRESSED(KEY_LEFT))
+	{
+		if (g_temp_alarm[1] < g_temp_stop[1])
+			g_temp_stop[1]--;
+
+		CLEAR_KEY_PRESSED(KEY_LEFT);
+	}
+
+	if (KEY_PRESSED(KEY_RIGHT))
+	{
+		if (95 > g_temp_stop[1])
+			g_temp_stop[1]++;
+
+		CLEAR_KEY_PRESSED(KEY_RIGHT);
+	}
+		
+	sprintf(lcd_line1, "STOP TEMP.2= %-d—      ", g_temp_stop[1]);
+	
+	menu_common();
+}
+
+
+char	stop_mode_str[6][15] = {"BUTTON", "485", "OVERHEAT 1", "OVERHEAT 2", "FREQUENCY O/L", "CURRENT O/L"};
 
 void menu_stop_mode(void)
 {

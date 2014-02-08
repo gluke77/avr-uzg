@@ -14,8 +14,8 @@ static float	g_temp_value[MAX_DS18X20_COUNT];
 
 void stop(stop_mode_e);
 
-uint16_t	g_temp_alarm; //[MAX_DS18X20_COUNT];
-uint16_t	g_temp_stop; //[MAX_DS18X20_COUNT];
+uint16_t	g_temp_alarm[MAX_DS18X20_COUNT];
+uint16_t	g_temp_stop[MAX_DS18X20_COUNT];
 
 uint8_t search_sensors(void)
 {
@@ -100,14 +100,14 @@ void do_temp(void)
 		
 		if (IS_UZG_RUN)
 		{				
-			if (g_temp_stop < temp_value(sensor_id))
+			if (g_temp_stop[sensor_id] < temp_value(sensor_id))
 			{
-				stop(STOP_TEMPERATURE);
+				stop(STOP_TEMPERATURE1 + sensor_id);
 				beep_ms(1000);
 			}	
-			else if (g_temp_alarm < temp_value(sensor_id))
+			else if (g_temp_alarm[sensor_id] < temp_value(sensor_id))
 			{
-				sprintf(lcd_line0, "CRITICAL TEMP.      ");
+				sprintf(lcd_line0, "CRITICAL TEMP.%d      ", sensor_id + 1);
 				do_lcd();
 				beep_ms(100);
 				_delay_ms(100);

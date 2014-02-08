@@ -147,8 +147,10 @@ int main(void)
 			sprintf(lcd_line0, "FREQUENCY OVERLOAD  ");
 		else if (TEST_FAULT_BIAS)
 			sprintf(lcd_line0, "CURRENT OVERLOAD    ");
-		else if (g_temp_stop < temp_value(0) || g_temp_stop < temp_value(1))
-			sprintf(lcd_line0, "OVERHEAT            ");
+		else if (g_temp_stop[0] < temp_value(0))
+			sprintf(lcd_line0, "OVERHEAT 1          ");
+		else if (g_temp_stop[1] < temp_value(1))
+			sprintf(lcd_line0, "OVERHEAT 2          ");
 		else
 			sprintf(lcd_line0, "  UZG-%s PFC-%s  ", 
 				(IS_UZG_RUN)?"ON  ":"OFF ", (IS_PFC_RUN)?"ON  ":"OFF ");
@@ -296,15 +298,28 @@ void do_usart(void)
 							g_keep_freq_max_delta = 10;
 						break;
 					case 0x000B:	// set stop temp
-						g_temp_stop = value;
-						if (g_temp_stop < g_temp_alarm)
-							g_temp_stop = g_temp_alarm;
+						g_temp_stop[0] = value;
+						if (g_temp_stop[0] < g_temp_alarm[0])
+							g_temp_stop[0] = g_temp_alarm[0];
 						break;
 					case 0x000C:	// set alarm temp
-						g_temp_alarm = value;
-						if (g_temp_stop < g_temp_alarm)
-							g_temp_alarm = g_temp_stop;
+						g_temp_alarm[0] = value;
+						if (g_temp_stop[0] < g_temp_alarm[0])
+							g_temp_alarm[0] = g_temp_stop[0];
 						break;
+
+					case 0x100B:	// set stop temp
+						g_temp_stop[1] = value;
+						if (g_temp_stop[1] < g_temp_alarm[1])
+							g_temp_stop[1] = g_temp_alarm[1];
+						break;
+					case 0x100C:	// set alarm temp
+						g_temp_alarm[1] = value;
+						if (g_temp_stop[1] < g_temp_alarm[1])
+							g_temp_alarm[1] = g_temp_stop[1];
+						break;
+
+
 					case 0x000D:	// set power pwm
 						if (value < g_min_power_pwm)
 							value = g_min_power_pwm;
@@ -499,6 +514,17 @@ void do_usart(void)
 					cmd.value[10] = (uint16_t)g_power_pwm_base;
 					cmd.value[11] = (uint16_t)g_power_pwm_shift;
 				}
+				else if (0x0002 == cmd.addr)
+				{
+					cmd.addr = 6;
+					
+					cmd.value[0] = temp_value(0) * 10;
+					cmd.value[1] = temp_value(1) * 10;
+					cmd.value[2] = (uint16_t)g_temp_stop[0];
+					cmd.value[3] = (uint16_t)g_temp_alarm[0];
+					cmd.value[4] = (uint16_t)g_temp_stop[1];
+					cmd.value[5] = (uint16_t)g_temp_alarm[1];
+				}
 				else if (0x0010 == cmd.addr)
 				{
 					cmd.addr = 1;
@@ -612,15 +638,24 @@ void start(void)
 		return;
 	}
 	
-	if (g_temp_alarm < temp_value(0) || g_temp_alarm < temp_value(1))
+	if (g_temp_alarm[0] < temp_value(0))
 	{
-		sprintf(lcd_line0, "OVERHEAT            ");
+		sprintf(lcd_line0, "OVERHEAT 1          ");
 		do_lcd();
 		beep_ms(200);
 		_delay_ms(1000);
 		return;
 	}
 	
+	if (g_temp_alarm[1] < temp_value(1))
+	{
+		sprintf(lcd_line0, "OVERHEAT 2          ");
+		do_lcd();
+		beep_ms(200);
+		_delay_ms(1000);
+		return;
+	}
+
 	if (PFC_OFF != g_pfc_mode)
 	{
 		PFC_RUN;
