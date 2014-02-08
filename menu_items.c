@@ -54,9 +54,9 @@ void menu_items_init(void)
 #ifdef _BIAS_CHANGEABLE
 	menu_items[MENU_MODE_WORK][idx++] = menu_current;	
 #endif // _BIAS_CHANGEABLE
-//	menu_items[MENU_MODE_WORK][idx++] = menu_amp;
+	menu_items[MENU_MODE_WORK][idx++] = menu_amp;
 	menu_items[MENU_MODE_WORK][idx++] = menu_temp;
-//	menu_items[MENU_MODE_WORK][idx++] = menu_temp2;
+	menu_items[MENU_MODE_WORK][idx++] = menu_temp2;
 //	menu_items[MENU_MODE_WORK][idx++] = menu_monitor;
 	menu_items[MENU_MODE_WORK][idx++] = menu_stop_mode;
 
@@ -94,10 +94,10 @@ void menu_items_init(void)
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_max_power_pwm;
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_min_power_pwm;
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_power_pwm_base;
-//	menu_items[MENU_MODE_SETTINGS][idx++] = menu_power_pwm_shift;
+	menu_items[MENU_MODE_SETTINGS][idx++] = menu_power_pwm_shift;
 #endif // _POWER_CHANGEABLE
 
-//	menu_items[MENU_MODE_SETTINGS][idx++] = menu_int_timeout; //-
+	menu_items[MENU_MODE_SETTINGS][idx++] = menu_int_timeout; //-
 
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_pfc_mode;
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_autosearch_mode;
@@ -109,11 +109,11 @@ void menu_items_init(void)
 #endif // _KEEP_CHANGEABLE
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_temp_alarm;	
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_temp_stop;	
-//	menu_items[MENU_MODE_SETTINGS][idx++] = menu_temp2_alarm;	
-//	menu_items[MENU_MODE_SETTINGS][idx++] = menu_temp2_stop;	
+	menu_items[MENU_MODE_SETTINGS][idx++] = menu_temp2_alarm;	
+	menu_items[MENU_MODE_SETTINGS][idx++] = menu_temp2_stop;	
 //-	menu_items[MENU_MODE_SETTINGS][idx++] = menu_fault_interrupts;	
-//	menu_items[MENU_MODE_SETTINGS][idx++] = menu_modbus_id;	
-//	menu_items[MENU_MODE_SETTINGS][idx++] = menu_baudrate;	
+	menu_items[MENU_MODE_SETTINGS][idx++] = menu_modbus_id;	
+	menu_items[MENU_MODE_SETTINGS][idx++] = menu_baudrate;	
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_store_settings;
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_reset_settings;
 
@@ -1487,7 +1487,7 @@ void storeToEE(void)
 void reset_settings(void)
 {
 
-	g_freq_upper = 36200;
+	g_freq_upper = 37000;
 
 	if (g_freq_upper > g_freq_supermax)
 		g_freq_upper = g_freq_supermax;
@@ -1495,7 +1495,7 @@ void reset_settings(void)
 	if (g_freq_upper < g_freq_supermin)
 		g_freq_upper = g_freq_supermin;
 		
-	g_freq_lower = 35700;
+	g_freq_lower = 35000;
 
 	if (g_freq_lower < g_freq_supermin)
 		g_freq_lower = g_freq_supermin;
