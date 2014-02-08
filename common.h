@@ -9,7 +9,7 @@
 #include <inttypes.h>
 #include <util/delay.h>
 
-#define FW_VERSION	("20110327")
+#define FW_VERSION	("20110401")
 
 #define TRUE 1
 #define FALSE 0
@@ -215,7 +215,10 @@ extern	char	g_din[DIN_SIZE];
 #undef _BIAS_CHANGEABLE
 #undef _BIAS_SHIFT_CHANGEABLE
 #define _POWER_CHANGEABLE
-#define _KEEP_CHANGEABLE
+#undef _KEEP_CHANGEABLE
 #undef _ADC_SHOW
+
+// freq range 35000-37000, see dds.h
+
 
 #endif /* __COMMON_H_INCLUDED_*/

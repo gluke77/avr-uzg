@@ -645,6 +645,7 @@ void uzg_run(void)
 {
 	dds_setfreq(g_dds_freq);
 	set_power_on();
+	set_power_pwm(g_power_pwm_base);
 	
 #ifdef _BIAS_CHANGEABLE
 	set_bias_pwm(g_bias_pwm_base);

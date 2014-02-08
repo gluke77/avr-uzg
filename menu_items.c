@@ -54,9 +54,9 @@ void menu_items_init(void)
 #ifdef _BIAS_CHANGEABLE
 	menu_items[MENU_MODE_WORK][idx++] = menu_current;	
 #endif // _BIAS_CHANGEABLE
-	menu_items[MENU_MODE_WORK][idx++] = menu_amp;
+//	menu_items[MENU_MODE_WORK][idx++] = menu_amp;
 	menu_items[MENU_MODE_WORK][idx++] = menu_temp;
-	menu_items[MENU_MODE_WORK][idx++] = menu_temp2;
+//	menu_items[MENU_MODE_WORK][idx++] = menu_temp2;
 //	menu_items[MENU_MODE_WORK][idx++] = menu_monitor;
 	menu_items[MENU_MODE_WORK][idx++] = menu_stop_mode;
 
@@ -94,10 +94,10 @@ void menu_items_init(void)
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_max_power_pwm;
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_min_power_pwm;
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_power_pwm_base;
-	menu_items[MENU_MODE_SETTINGS][idx++] = menu_power_pwm_shift;
+//	menu_items[MENU_MODE_SETTINGS][idx++] = menu_power_pwm_shift;
 #endif // _POWER_CHANGEABLE
 
-	menu_items[MENU_MODE_SETTINGS][idx++] = menu_int_timeout; //-
+//	menu_items[MENU_MODE_SETTINGS][idx++] = menu_int_timeout; //-
 
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_pfc_mode;
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_autosearch_mode;
@@ -109,11 +109,11 @@ void menu_items_init(void)
 #endif // _KEEP_CHANGEABLE
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_temp_alarm;	
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_temp_stop;	
-	menu_items[MENU_MODE_SETTINGS][idx++] = menu_temp2_alarm;	
-	menu_items[MENU_MODE_SETTINGS][idx++] = menu_temp2_stop;	
+//	menu_items[MENU_MODE_SETTINGS][idx++] = menu_temp2_alarm;	
+//	menu_items[MENU_MODE_SETTINGS][idx++] = menu_temp2_stop;	
 //-	menu_items[MENU_MODE_SETTINGS][idx++] = menu_fault_interrupts;	
-	menu_items[MENU_MODE_SETTINGS][idx++] = menu_modbus_id;	
-	menu_items[MENU_MODE_SETTINGS][idx++] = menu_baudrate;	
+//	menu_items[MENU_MODE_SETTINGS][idx++] = menu_modbus_id;	
+//	menu_items[MENU_MODE_SETTINGS][idx++] = menu_baudrate;	
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_store_settings;
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_reset_settings;
 
@@ -619,6 +619,34 @@ void menu_search_auto(void)
 	
 	if (g_autosearch_running)
 	{
+
+		if (KEY_PRESSED(KEY_STOP))
+		{
+			if (IS_UZG_RUN)
+				stop(STOP_BUTTON);
+			else
+			{
+				g_bias_alarm = 0;
+				g_pwm_alarm = 0;
+				stop(STOP_NOT_CHANGE);
+			}
+
+			CLEAR_KEY_PRESSED(KEY_STOP);
+		}
+
+		if (!IS_UZG_RUN)
+		{
+			g_autosearch_running = 0;
+			
+			if (0 != timer_id)
+				stop_timer(timer_id);
+				timer_id = 0;
+				
+			menu_item_next();
+			return;
+		}
+		
+		
 		if (g_dds_freq < g_freq_upper)
 		{
 			if (0 == timer_id)
@@ -1459,7 +1487,7 @@ void storeToEE(void)
 void reset_settings(void)
 {
 
-	g_freq_upper = 37000;
+	g_freq_upper = 36200;
 
 	if (g_freq_upper > g_freq_supermax)
 		g_freq_upper = g_freq_supermax;
@@ -1467,7 +1495,7 @@ void reset_settings(void)
 	if (g_freq_upper < g_freq_supermin)
 		g_freq_upper = g_freq_supermin;
 		
-	g_freq_lower = 35000;
+	g_freq_lower = 35700;
 
 	if (g_freq_lower < g_freq_supermin)
 		g_freq_lower = g_freq_supermin;
@@ -1517,7 +1545,7 @@ void reset_settings(void)
 //	adc_set_delay(3, 1);
 //	adc_set_count(3, 400);
 	
-	set_pfc_mode(PFC_AUTO);
+	set_pfc_mode(PFC_OFF);
 	
 	g_power_pwm_base = 95;
 	g_power_pwm_shift = 0;
