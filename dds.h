@@ -43,7 +43,7 @@ void dds_setfreq(uint32_t);
 extern	uint32_t	g_dds_mult;
 extern	uint32_t	g_dds_freq;
 
-#define DDS_MAX_FREQ	(30000)
-#define DDS_MIN_FREQ	(17000)
+#define DDS_MAX_FREQ	(40000)
+#define DDS_MIN_FREQ	(15000)
 
 #endif /* __DDS_H_INCLUDED_ */

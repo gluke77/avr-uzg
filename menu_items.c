@@ -17,6 +17,9 @@
 #include "usart.h"
 #include "beep.h"
 
+#define FAST_MODE_COUNT		(75)
+#define FAST_MODE_DELAY		(500)
+
 uint32_t	g_freq_upper;
 uint32_t	g_freq_lower;
 
@@ -647,7 +650,7 @@ void menu_search(void)
 	
 	float		curr = 0.;
 	float		bias = 0.;
-		
+
 	if (KEY_PRESSED(KEY_RIGHT))
 	{
 		g_dds_freq++;
@@ -861,9 +864,30 @@ void menu_adc3_delay(void)
 
 void menu_freq_lower(void)
 {
+	static uint32_t	last_mseconds = 0;
+	static int		fast_mode_count = 0;
+	
+	if (KEY_PRESSED(KEY_LEFT) || KEY_PRESSED(KEY_RIGHT))
+	{
+		if (timer_mseconds_total - last_mseconds < FAST_MODE_DELAY)
+		{
+			
+			if (fast_mode_count < FAST_MODE_COUNT)
+				fast_mode_count++;
+		}
+		else
+		{
+			fast_mode_count = 0;
+		}
+		last_mseconds = timer_mseconds_total;
+	}
+	
 	if (KEY_PRESSED(KEY_LEFT))
 	{
-		g_freq_lower--;
+		if (fast_mode_count >= FAST_MODE_COUNT)
+			g_freq_lower -= 10;
+		else
+			g_freq_lower--;
 
 		if (DDS_MIN_FREQ > g_freq_lower)
 			g_freq_lower = DDS_MIN_FREQ;
@@ -873,7 +897,10 @@ void menu_freq_lower(void)
 
 	if (KEY_PRESSED(KEY_RIGHT))
 	{
-		g_freq_lower++;
+		if (fast_mode_count >= FAST_MODE_COUNT)
+			g_freq_lower += 10;
+		else
+			g_freq_lower++;
 
 		if (g_freq_upper < g_freq_lower)
 			g_freq_lower = g_freq_upper;
@@ -891,9 +918,31 @@ void menu_freq_lower(void)
 
 void menu_freq_upper(void)
 {
+	static uint32_t	last_mseconds = 0;
+	static int		fast_mode_count = 0;
+	
+	if (KEY_PRESSED(KEY_LEFT) || KEY_PRESSED(KEY_RIGHT))
+	{
+		if (timer_mseconds_total - last_mseconds < FAST_MODE_DELAY)
+		{
+			
+			if (fast_mode_count < FAST_MODE_COUNT)
+				fast_mode_count++;
+		}
+		else
+		{
+			fast_mode_count = 0;
+		}
+		last_mseconds = timer_mseconds_total;
+	}
+	
+
 	if (KEY_PRESSED(KEY_LEFT))
 	{
-		g_freq_upper--;
+		if (fast_mode_count >= FAST_MODE_COUNT)
+			g_freq_upper -= 10;
+		else
+			g_freq_upper--;
 
 		if (g_freq_upper < g_freq_lower)
 			g_freq_upper = g_freq_lower;
@@ -906,7 +955,10 @@ void menu_freq_upper(void)
 
 	if (KEY_PRESSED(KEY_RIGHT))
 	{
-		g_freq_upper++;
+		if (fast_mode_count >= FAST_MODE_COUNT)
+			g_freq_upper += 10;
+		else
+			g_freq_upper++;
 
 		if (DDS_MAX_FREQ < g_freq_upper)
 			g_freq_upper = DDS_MAX_FREQ;

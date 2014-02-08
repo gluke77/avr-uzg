@@ -7,9 +7,12 @@
 uint8_t		kbd_timeout;
 
 uint16_t	key_pressed_counter[KEY_COUNT];
+uint16_t	key_fastmode_counter[KEY_COUNT];
 
 uint16_t	key_big_delay = 50;
 uint16_t	key_small_delay = 5;
+uint16_t	key_very_small_delay = 1;
+uint16_t	key_fastmode_delay = 150;
 
 volatile uint8_t	key_pressed;
 volatile uint8_t	key_state;
@@ -50,6 +53,8 @@ void one_key_scan(uint8_t key_id)
 	{
 		SET_KEY_PRESSED(key_id);
 		key_pressed_counter[key_id] = 0;
+		key_fastmode_counter[key_id] = 0;
+
 	}
 	else if ((!KEY_STATE(key_id)) && OLD_KEY_STATE(key_id))
 	{
@@ -58,14 +63,33 @@ void one_key_scan(uint8_t key_id)
 	}
 	else if (!KEY_STATE(key_id) && !OLD_KEY_STATE(key_id)) // key still pressed
 	{
-		key_pressed_counter[key_id]++;
-		
-		if (key_small_delay + key_big_delay < key_pressed_counter[key_id]) 
+
+		if (key_small_delay + key_big_delay < ++key_pressed_counter[key_id]) 
 		{
 			SET_KEY_PRESSED(key_id);
 			key_pressed_counter[key_id] = key_big_delay;
 			beep_timer_ms(20);
 		}
+		
+/*
+		if (key_fastmode_counter[key_id] > key_fastmode_delay)
+		{	
+			if (++key_pressed_counter[key_id] > key_big_delay + key_very_small_delay)
+			{
+				key_pressed_counter[key_id] = key_big_delay;
+				SET_KEY_PRESSED(key_id);
+				beep_timer_ms(5);
+			}
+		}
+		else
+			if (++key_pressed_counter[key_id] > key_big_delay + key_small_delay)
+			{
+				key_pressed_counter[key_id] = key_big_delay;
+				key_fastmode_counter[key_id]++;
+				SET_KEY_PRESSED(key_id);
+				beep_timer_ms(20);
+			}
+*/
 	}
 }
 
