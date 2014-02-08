@@ -9,7 +9,7 @@
 #include <inttypes.h>
 #include <util/delay.h>
 
-#define FW_VERSION	("20101021")
+#define FW_VERSION	("20101129")
 
 #define TRUE 1
 #define FALSE 0
@@ -199,6 +199,12 @@ extern	char	g_din[DIN_SIZE];
 
 // next addr 82
 
-#define _NARROW_FREQ
+// #define _NARROW_FREQ
+
+#define _POWER_CHANGEABLE
+#define _BIAS_SHIFT_CHANGEABLE
+#define _POWER_CHANGEABLE
+#define _KEEP_CHANGEABLE
+
 
 #endif /* __COMMON_H_INCLUDED_*/

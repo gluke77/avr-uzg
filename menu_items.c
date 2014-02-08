@@ -89,7 +89,7 @@ void menu_items_init(void)
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_power_pwm_shift;
 #endif // _POWER_CHANGEABLE
 
-//-	menu_items[MENU_MODE_SETTINGS][idx++] = menu_int_timeout;
+	menu_items[MENU_MODE_SETTINGS][idx++] = menu_int_timeout; //-
 
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_pfc_mode;
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_autosearch_mode;
