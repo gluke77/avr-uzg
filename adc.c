@@ -84,12 +84,7 @@ void adc_init(uint8_t use_int)
 		adc[idx].shift = 0;
 	}
 
-	adc[0].bias = 511;
 	adc[1].bias = 511;
-
-//	adc[3].bias = 510;
-//	adc[3].shift = 1;
-//	adc[0].shift = 2;
 
 	
 	ADCSRA = _BV(ADPS2) | _BV(ADPS1) | _BV(ADPS0);

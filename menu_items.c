@@ -1585,9 +1585,9 @@ void check_settings(void)
 		eeprom_write_word(BIAS_PWM_MULTIPLIER_ADDR, g_bias_pwm_multiplier);
 	}
 	
-	if (20 > g_adc_bias_multiplier || g_adc_bias_multiplier > 60)
+	if (10 > g_adc_bias_multiplier || g_adc_bias_multiplier > 60)
 	{
-		g_adc_bias_multiplier = 55;
+		g_adc_bias_multiplier = 29;
 		eeprom_write_byte(ADC_BIAS_MULTIPLIER_ADDR, g_adc_bias_multiplier);
 	}
 		
@@ -1597,9 +1597,9 @@ void check_settings(void)
 		eeprom_write_byte(ADC_FEEDBACK_MULTIPLIER_ADDR, g_adc_feedback_multiplier);
 	}
 
-	if (adc[0].bias > 520 || adc[0].bias < 500)
+	if (adc[0].bias > 0 || adc[0].bias < 1000)
 	{
-		adc[0].bias = 511;
+		adc[0].bias = 105;
 		eeprom_write_word(ADC0_BIAS_ADDR, adc[0].bias);
 	}
 
