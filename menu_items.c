@@ -121,7 +121,7 @@ void menu_items_init(void)
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_temp_stop;	
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_temp2_alarm;	
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_temp2_stop;	
-//-	menu_items[MENU_MODE_SETTINGS][idx++] = menu_fault_interrupts;	
+	menu_items[MENU_MODE_SETTINGS][idx++] = menu_fault_interrupts;	
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_modbus_id;	
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_baudrate;	
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_store_settings;
@@ -1447,6 +1447,7 @@ void loadFromEE(void)
 	
 	g_startbutton_mode = eeprom_read_byte(STARTBUTTON_MODE_ADDR);
 	
+	g_fault_interrupts_mode = eeprom_read_byte(FAULT_INTERRUPTS_MODE_ADDR);
 }
 
 void storeToEE(void)
@@ -1536,7 +1537,7 @@ void reset_settings(void)
 	g_autosearch_mode = AUTOSEARCH_ON;
 #endif //_STARTBUTTON_ENABLED
 
-	g_fault_interrupts_mode = FAULT_INTERRUPTS_OFF;
+	g_fault_interrupts_mode = FAULT_INTERRUPTS_ON;
 	
 	g_keep_freq_step = 5;
 	g_keep_freq_max_delta = 1;
@@ -1722,7 +1723,8 @@ void check_settings(void)
 	g_autosearch_mode = AUTOSEARCH_ON;
 #endif //_STARTBUTTON_ENABLED
 		
-	g_fault_interrupts_mode = FAULT_INTERRUPTS_OFF; //-!
+	if (g_fault_interrupts_mode < FAULT_INTERRUPTS_OFF || g_fault_interrupts_mode >= FAULT_INTERRUPTS_COUNT)
+        g_fault_interrupts_mode = FAULT_INTERRUPTS_ON;
 	
 	if (g_keep_freq_step > 10 || 0 > g_keep_freq_step)
 		g_keep_freq_step = 5;

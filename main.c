@@ -113,44 +113,26 @@ int main(void)
 	_delay_ms(200);
 	beep_ms(200);
 	
-	//usart1_write();
 
 	for (;;)
 	{
 		menu_doitem();
 		do_keep_resonance();
-/*
-		if (IS_UZG_RUN && TEST_FAULT_PWM)
-		{
-			stop(STOP_FAULT_PWM);
-			beep_ms(1000);
-		}
 
-		if (IS_UZG_RUN && TEST_FAULT_BIAS)
-		{
-			stop(STOP_FAULT_BIAS);
-			beep_ms(1000);
-		}
-*/
-
-		if (g_bias_alarm)
+		if (g_bias_alarm || TEST_FAULT_BIAS)
 		{
 			sprintf(lcd_line0, "CURRENT OVERLOAD     ");
 
 			beep_ms(200);
 			_delay_ms(200);
 		}
-		else if (g_pwm_alarm)
+		else if (g_pwm_alarm || TEST_FAULT_PWM)
 		{
 			sprintf(lcd_line0, "FREQUENCY OVERLOAD  ");
 
 			beep_ms(200);
 			_delay_ms(200);
 		}
-		else if (TEST_FAULT_PWM)
-			sprintf(lcd_line0, "FREQUENCY OVERLOAD  ");
-		else if (TEST_FAULT_BIAS)
-			sprintf(lcd_line0, "CURRENT OVERLOAD    ");
 		else if (g_temp_stop[0] < temp_value(0))
 			sprintf(lcd_line0, "OVERHEAT 1          ");
 		else if (g_temp_stop[1] < temp_value(1))
@@ -163,7 +145,6 @@ int main(void)
 		do_lcd();
 		do_temp();
 		do_usart();
-		//usart1_putchar('1');
 	}
 	return 0;
 }
@@ -669,7 +650,9 @@ void uzg_stop(void)
 
 void start(void)
 {
-	if (TEST_FAULT_PWM)
+    fault_interrupts_init(g_fault_interrupts_mode);
+
+	if (TEST_FAULT_PWM || g_pwm_alarm)
 	{
 		sprintf(lcd_line0, "FREQUENCY OVERLOAD  ");
 		do_lcd();
@@ -678,7 +661,7 @@ void start(void)
 		return;
 	}
 		
-	if (TEST_FAULT_BIAS)
+	if (TEST_FAULT_BIAS || g_bias_alarm)
 	{
 		sprintf(lcd_line0, "CURRENT OVERLOAD    ");
 		do_lcd();
@@ -734,6 +717,14 @@ void stop(stop_mode_e mode)
 	
 	if (STOP_NOT_CHANGE != mode)
 		g_stop_mode = mode;
+
+    fault_interrupts_init(g_fault_interrupts_mode);
+    
+    if (!TEST_FAULT_BIAS)
+        g_bias_alarm = 0;
+
+    if (!TEST_FAULT_PWM)
+        g_pwm_alarm = 0;
 }
 
 
@@ -958,18 +949,18 @@ void fault_interrupts_init(fault_interrupts_mode_e mode)
 ISR(INT5_vect)
 {
 	if (IS_UZG_RUN)
-	{
 		stop(STOP_FAULT_PWM);
-		g_pwm_alarm = 1;
-	}
+
+	g_pwm_alarm = 1;
+	CLEARBIT(EIMSK, INT5);
 }
 
 //FLTBIAS
 ISR(INT7_vect)
 {
 	if (IS_UZG_RUN)
-	{
 		stop(STOP_FAULT_BIAS);
-		g_bias_alarm = 1;
-	}
+
+	g_bias_alarm = 1;
+	CLEARBIT(EIMSK, INT7);
 }
