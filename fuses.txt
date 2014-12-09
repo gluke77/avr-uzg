@@ -1,0 +1,5 @@
+efuse 0xFF
+hfuse 0x99
+lfuse 0xEF
+
+avrdude -p atmega128 -P com3 -c stk500v2 -U lfuse:w:0xEF:m -U hfuse:w:0x99:m -U efuse:w:0xFF:m
