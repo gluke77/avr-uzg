@@ -909,7 +909,7 @@ void keep_stop(void)
 void keep_start(void)
 {
 	_delay_ms(1000);
-	_delay_ms(g_int_timeout + adc_get_timeout(ADC_FEEDBACK_CURRENT) + adc_get_timeout(ADC_AMP));
+	delay_ms(g_int_timeout + adc_get_timeout(ADC_FEEDBACK_CURRENT) + adc_get_timeout(ADC_AMP));
 	g_current_keep_mode = g_keep_mode;
 	cli();
 	g_keep_current = adc_mean_value(ADC_FEEDBACK_CURRENT);

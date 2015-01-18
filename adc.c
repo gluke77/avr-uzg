@@ -1,5 +1,5 @@
-#include <avr\io.h>
-#include <avr\signal.h>
+#include <avr/io.h>
+#include <avr/signal.h>
 #include "timer.h"
 #include "common.h"
 #include "adc.h"

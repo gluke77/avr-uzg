@@ -1,6 +1,6 @@
-#include <avr\io.h>
-#include <avr\interrupt.h>
-#include <avr\eeprom.h>
+#include <avr/io.h>
+#include <avr/interrupt.h>
+#include <avr/eeprom.h>
 #include "string.h"
 #include "stdio.h"
 #include "common.h"
@@ -228,7 +228,7 @@ void menu_monitor(void)
 		for (i = 0; i < 256; i++)
 		{
 			set_bias_pwm(i);
-			_delay_ms(g_int_timeout + g_int_timeout + adc_get_timeout(ADC_BIAS_CURRENT));
+			delay_ms(g_int_timeout + g_int_timeout + adc_get_timeout(ADC_BIAS_CURRENT));
 
 			sprintf(lcd_line1, "BIAS:%d ADC0%d", g_bias_pwm, adc_mean_value(ADC_BIAS_CURRENT));
 			do_lcd();

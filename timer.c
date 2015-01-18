@@ -82,7 +82,7 @@ uint8_t start_timer(uint16_t delay)
 	return timer_id;
 }
 
-void delay_ms(uint16_t delay)
+void timer_based_delay_ms(uint16_t delay)
 {
 	uint8_t		sreg;
 	
@@ -92,6 +92,14 @@ void delay_ms(uint16_t delay)
 	SREG = sreg;
 	
 	while (timer_value(0));
+}
+
+void delay_ms(uint16_t delay)
+{
+    while (delay--)
+    {
+        _delay_ms(1);
+    }
 }
 
 void stop_timer(uint8_t timer_id)
