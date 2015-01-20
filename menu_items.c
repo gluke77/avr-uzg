@@ -16,6 +16,7 @@
 #include "temp.h"
 #include "usart.h"
 #include "beep.h"
+#include "voltage.h"
 
 #define FAST_MODE_COUNT		(75)
 #define FAST_MODE_DELAY		(500)
@@ -54,6 +55,9 @@ void menu_items_init(void)
 #ifdef _BIAS_CHANGEABLE
 	menu_items[MENU_MODE_WORK][idx++] = menu_current;	
 #endif // _BIAS_CHANGEABLE
+#ifdef _VOLTAGE_CHANGEABLE
+	menu_items[MENU_MODE_WORK][idx++] = menu_voltage;
+#endif // _VOLTAGE_CHANGEABLE
 	menu_items[MENU_MODE_WORK][idx++] = menu_amp;
 	menu_items[MENU_MODE_WORK][idx++] = menu_temp;
 	menu_items[MENU_MODE_WORK][idx++] = menu_temp2;
@@ -93,6 +97,17 @@ void menu_items_init(void)
 #endif // _BIAS_SHIFT_CHANGEABLE
 	//menu_items[MENU_MODE_SETTINGS][idx++] = menu_bias_pwm_multiplier;
 	//menu_items[MENU_MODE_SETTINGS][idx++] = menu_adc_multiplier;
+
+#ifdef _VOLTAGE_CHANGEABLE
+#ifdef _MAX_VOLTAGE_CHANGEABLE
+	menu_items[MENU_MODE_SETTINGS][idx++] = menu_max_voltage_pwm;
+#endif // _MAX_VOLTAGE_CHANGEABLE
+#ifdef _MIN_VOLTAGE_CHANGEABLE
+	menu_items[MENU_MODE_SETTINGS][idx++] = menu_min_voltage_pwm;	
+#endif // _MIN_VOLTAGE_CHANGEABLE	
+	menu_items[MENU_MODE_SETTINGS][idx++] = menu_voltage_pwm_base;
+#endif // _VOLTAGE_CHANGEABLE
+
 
 #ifdef _POWER_CHANGEABLE	
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_max_power_pwm;
@@ -367,6 +382,37 @@ void menu_power(void)
 	menu_common();
 }
 
+void menu_voltage(void)
+{
+	sprintf(lcd_line1, "VOLTAGE= %3d               ", g_voltage_pwm);
+
+	if (KEY_PRESSED(KEY_RIGHT))
+	{
+		if (g_max_voltage_pwm - g_voltage_pwm < g_voltage_pwm_step)
+			g_voltage_pwm = g_max_voltage_pwm;
+		else
+			g_voltage_pwm += g_voltage_pwm_step;
+		
+		set_voltage_pwm(g_voltage_pwm);
+
+		CLEAR_KEY_PRESSED(KEY_RIGHT);
+	}
+
+	if (KEY_PRESSED(KEY_LEFT))
+	{
+		if (g_voltage_pwm < g_min_voltage_pwm + g_voltage_pwm_step)
+			g_voltage_pwm = g_min_voltage_pwm;
+		else
+			g_voltage_pwm -= g_voltage_pwm_step;
+			
+		set_voltage_pwm(g_voltage_pwm);
+
+		CLEAR_KEY_PRESSED(KEY_LEFT);
+	}
+
+	menu_common();
+}
+
 void menu_bias_pwm_base(void)
 {
 	sprintf(lcd_line1, "START CURRENT= %.2fA     ", bias_pwm_to_current(g_bias_pwm_base));
@@ -531,6 +577,84 @@ void menu_min_power_pwm(void)
 	}
 		
 	sprintf(lcd_line1, "MIN POWER= %d%%         ", g_min_power_pwm + 1);
+	
+	menu_common();
+}
+
+void menu_voltage_pwm_base(void)
+{
+	sprintf(lcd_line1, "START VOLTAGE= %3d     ", g_voltage_pwm_base);
+
+	if (KEY_PRESSED(KEY_RIGHT))
+	{
+		if (g_max_voltage_pwm > g_voltage_pwm_base)
+			g_voltage_pwm_base++;
+		
+		CLEAR_KEY_PRESSED(KEY_RIGHT);
+	}
+
+	if (KEY_PRESSED(KEY_LEFT))
+	{
+		if (g_voltage_pwm_base > g_min_voltage_pwm)
+			g_voltage_pwm_base--;
+			
+		CLEAR_KEY_PRESSED(KEY_LEFT);
+	}
+
+	menu_common();
+}
+
+void menu_max_voltage_pwm(void)
+{
+	if (KEY_PRESSED(KEY_LEFT))
+	{
+		if ((g_voltage_pwm_base < g_max_voltage_pwm) &&
+			(g_min_voltage_pwm < g_max_voltage_pwm))
+			g_max_voltage_pwm--;
+
+		if ((IS_UZG_RUN) && (g_voltage_pwm > g_max_voltage_pwm))
+			set_voltage_pwm(g_max_voltage_pwm);
+
+		CLEAR_KEY_PRESSED(KEY_LEFT);
+	}
+
+	if (KEY_PRESSED(KEY_RIGHT))
+	{
+		if (VOLTAGE_PWM_MAX > g_max_voltage_pwm)
+			g_max_voltage_pwm++;
+
+		CLEAR_KEY_PRESSED(KEY_RIGHT);
+	}
+		
+	sprintf(lcd_line1, "MAX VOLTAGE= %d       ", g_max_voltage_pwm);
+	
+	menu_common();
+}
+
+
+void menu_min_voltage_pwm(void)
+{
+	if (KEY_PRESSED(KEY_LEFT))
+	{
+		if (VOLTAGE_PWM_MIN < g_min_voltage_pwm)
+			g_min_voltage_pwm--;
+
+		CLEAR_KEY_PRESSED(KEY_LEFT);
+	}
+
+	if (KEY_PRESSED(KEY_RIGHT))
+	{
+		if ((g_voltage_pwm_base > g_min_voltage_pwm) &&
+			(g_max_voltage_pwm > g_min_voltage_pwm))
+			g_min_voltage_pwm++;
+
+		if ((IS_UZG_RUN) && (g_voltage_pwm < g_min_voltage_pwm))
+			set_voltage_pwm(g_min_voltage_pwm);
+
+		CLEAR_KEY_PRESSED(KEY_RIGHT);
+	}
+		
+	sprintf(lcd_line1, "MIN VOLTAGE= %d         ", g_min_voltage_pwm);
 	
 	menu_common();
 }
@@ -1448,6 +1572,10 @@ void loadFromEE(void)
 	g_startbutton_mode = eeprom_read_byte(STARTBUTTON_MODE_ADDR);
 	
 	g_fault_interrupts_mode = eeprom_read_byte(FAULT_INTERRUPTS_MODE_ADDR);
+
+    g_voltage_pwm_base = eeprom_read_byte(VOLTAGE_PWM_BASE_ADDR);
+    g_min_voltage_pwm = eeprom_read_byte(MIN_VOLTAGE_PWM_ADDR);
+    g_max_voltage_pwm = eeprom_read_byte(MAX_VOLTAGE_PWM_ADDR);
 }
 
 void storeToEE(void)
@@ -1495,6 +1623,9 @@ void storeToEE(void)
 	
 //	eeprom_write_word(BIAS_PWM_MULTIPLIER_ADDR, g_bias_pwm_multiplier);
 //	eeprom_write_byte(ADC_MULTIPLIER_ADDR, g_adc_multiplier);
+    eeprom_write_byte(VOLTAGE_PWM_BASE_ADDR, g_voltage_pwm_base);
+    eeprom_write_byte(MIN_VOLTAGE_PWM_ADDR, g_min_voltage_pwm);
+    eeprom_write_byte(MAX_VOLTAGE_PWM_ADDR, g_max_voltage_pwm);
 }
 
 void reset_settings(void)
@@ -1576,6 +1707,9 @@ void reset_settings(void)
 #else 
 	g_startbutton_mode = STARTBUTTON_OFF;
 #endif //_STARTBUTTON_ENABLED
+    g_voltage_pwm_base = DEFAULT_VOLTAGE_PWM;
+    g_min_voltage_pwm = VOLTAGE_PWM_MIN;
+    g_max_voltage_pwm = VOLTAGE_PWM_MAX;
 }
 
 void check_settings(void)
@@ -1774,6 +1908,32 @@ void check_settings(void)
 	g_startbutton_mode = STARTBUTTON_OFF;
 #endif // ! _STARTBUTTON_ENABLED
 		
+#ifdef _VOLTAGE_CHANGEABLE
+#ifdef _MAX_VOLTAGE_CHANGEABLE
+    if (g_max_voltage_pwm > VOLTAGE_PWM_MAX || g_max_voltage_pwm < VOLTAGE_PWM_MIN)
+    {
+        g_max_voltage_pwm = VOLTAGE_PWM_MAX;
+        eeprom_write_byte(MAX_VOLTAGE_PWM_ADDR, g_max_voltage_pwm);
+    }
+#endif // _MAX_VOLTAGE_CHANGEABLE
+        g_max_voltage_pwm = VOLTAGE_PWM_MAX;
+
+
+#ifdef _MIN_VOLTAGE_CHANGEABLE
+    if (g_min_voltage_pwm < VOLTAGE_PWM_MIN || g_min_voltage_pwm > g_max_voltage_pwm)
+    {
+        g_min_voltage_pwm = VOLTAGE_PWM_MIN;
+        eeprom_write_byte(MIN_VOLTAGE_PWM_ADDR, g_min_voltage_pwm);
+    }
+#endif // _MIN_VOLTAGE_CHANGEABLE
+        g_min_voltage_pwm = VOLTAGE_PWM_MIN;
+
+    if (g_voltage_pwm_base > g_max_voltage_pwm || g_voltage_pwm_base < g_min_voltage_pwm)
+    {
+        g_voltage_pwm_base = (g_max_voltage_pwm + g_min_voltage_pwm) / 2;
+        eeprom_write_byte(VOLTAGE_PWM_BASE_ADDR, g_voltage_pwm_base);
+    }
+#endif // _VOLTAGE_CHANGEABLE
 }
 
 void menu_int_timeout(void)

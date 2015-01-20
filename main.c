@@ -19,6 +19,7 @@
 #include "power.h"
 #include "temp.h"
 #include "startbutton.h"
+#include "voltage.h"
 
 fault_interrupts_mode_e	g_fault_interrupts_mode = FAULT_INTERRUPTS_OFF; 
 stop_mode_e				g_stop_mode = STOP_BUTTON;
@@ -82,6 +83,7 @@ int main(void)
 	beep_init();
 	bias_pwm_init();
 	power_pwm_init();
+    voltage_pwm_init();
 	kbd_init();
 	startbutton_init();
 	lcd_init();
@@ -101,6 +103,7 @@ int main(void)
 	usart1_setprotocol_modbus();
 
 	set_power_pwm(g_power_pwm_base);
+    set_voltage_pwm(g_voltage_pwm_base);
 
 	stop(STOP_BUTTON);
 	sei();
@@ -640,12 +643,14 @@ void uzg_run(void)
 #ifdef _BIAS_CHANGEABLE
 	set_bias_pwm(g_bias_pwm_base);
 #endif // _BIAS_CHANGEABLE
+    set_voltage_on();
 }
 
 void uzg_stop(void)
 {
 	set_bias_off();
 	set_power_off();
+    set_voltage_off();
 }
 
 void start(void)

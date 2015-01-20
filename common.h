@@ -9,7 +9,7 @@
 #include <inttypes.h>
 #include <util/delay.h>
 
-#define FW_VERSION	("20150119")
+#define FW_VERSION	("20150120")
 
 #define TRUE 1
 #define FALSE 0
@@ -209,7 +209,10 @@ extern	char	g_din[DIN_SIZE];
 
 #define STARTBUTTON_MODE_ADDR	(82)
 
-// next addr 83
+#define VOLTAGE_PWM_BASE_ADDR   (83)
+#define MIN_VOLTAGE_PWM_ADDR    (84)
+#define MAX_VOLTAGE_PWM_ADDR    (85)
+// next addr 86
 
 #undef _NARROW_FREQ
 #define _BIAS_CHANGEABLE
@@ -222,6 +225,10 @@ extern	char	g_din[DIN_SIZE];
 #define _KEEP_CHANGEABLE
 #define _ADC_SHOW
 #undef _STARTBUTTON_ENABLED
+
+#define _VOLTAGE_CHANGEABLE
+#undef _MAX_VOLTAGE_CHANGEABLE
+#undef _MIN_VOLTAGE_CHANGEABLE
 
 #define DEFAULT_INT_TIMEOUT			(500)
 
@@ -238,6 +245,10 @@ extern	char	g_din[DIN_SIZE];
 #define DEFAULT_BIAS_PWM_BASE	(50)
 #define DEFAULT_BIAS_PWM_SHIFT	(0)
 
-
+// Voltage PWM settings
+#define VOLTAGE_PWM_STEP	(1) 
+#define VOLTAGE_PWM_MAX	    (255)
+#define VOLTAGE_PWM_MIN	    (0)   
+#define DEFAULT_VOLTAGE_PWM (VOLTAGE_PWM_MIN)
 
 #endif /* __COMMON_H_INCLUDED_*/
