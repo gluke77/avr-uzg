@@ -37,7 +37,7 @@ void voltage_pwm_init(void)
 
 	// OC2 output mode 2: Clear on Compare Match, set on BOTTOM
 	SETBIT(TCCR2, COM21);
-	CLEARBIT(TCCR2, COM21);
+	CLEARBIT(TCCR2, COM20);
 	
 	// Clock source: CLK_IO, no prescaling
 	SETBIT(TCCR2, CS20);
