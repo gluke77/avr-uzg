@@ -1732,7 +1732,7 @@ void check_settings(void)
 		eeprom_write_byte(ADC_FEEDBACK_MULTIPLIER_ADDR, g_adc_feedback_multiplier);
 	}
 
-	if (adc[0].bias > 0 || adc[0].bias < 1000)
+	if (adc[0].bias > 1000 || adc[0].bias < 0)
 	{
 		adc[0].bias = 511;
 		eeprom_write_word(ADC0_BIAS_ADDR, adc[0].bias);

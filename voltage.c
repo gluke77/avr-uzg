@@ -12,19 +12,19 @@ uint8_t		g_min_voltage_pwm = VOLTAGE_PWM_MIN;
 void set_voltage_on(void)
 {
     set_voltage_pwm(g_voltage_pwm_base);
-	SETBIT(TCCR2, CS20);
+	SETBIT(TCCR2, CS21);
 }
 
 void set_voltage_off(void)
 {
     // Disable clock source
-	CLEARBIT(TCCR2, CS20);
+	CLEARBIT(TCCR2, CS21);
     set_voltage_pwm(0);
 }
 
 uint8_t is_voltage_on(void)
 {
-	return TESTBIT(TCCR2, CS20);
+	return TESTBIT(TCCR2, CS21);
 }
 
 void voltage_pwm_init(void)
