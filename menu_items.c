@@ -1915,8 +1915,9 @@ void check_settings(void)
         g_max_voltage_pwm = VOLTAGE_PWM_MAX;
         eeprom_write_byte(MAX_VOLTAGE_PWM_ADDR, g_max_voltage_pwm);
     }
-#endif // _MAX_VOLTAGE_CHANGEABLE
+#else // _MAX_VOLTAGE_CHANGEABLE
         g_max_voltage_pwm = VOLTAGE_PWM_MAX;
+#endif // _MAX_VOLTAGE_CHANGEABLE
 
 
 #ifdef _MIN_VOLTAGE_CHANGEABLE
@@ -1925,8 +1926,9 @@ void check_settings(void)
         g_min_voltage_pwm = VOLTAGE_PWM_MIN;
         eeprom_write_byte(MIN_VOLTAGE_PWM_ADDR, g_min_voltage_pwm);
     }
-#endif // _MIN_VOLTAGE_CHANGEABLE
+#else // _MIN_VOLTAGE_CHANGEABLE
         g_min_voltage_pwm = VOLTAGE_PWM_MIN;
+#endif // _MIN_VOLTAGE_CHANGEABLE
 
     if (g_voltage_pwm_base > g_max_voltage_pwm || g_voltage_pwm_base < g_min_voltage_pwm)
     {

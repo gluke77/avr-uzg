@@ -9,7 +9,7 @@
 #include <inttypes.h>
 #include <util/delay.h>
 
-#define FW_VERSION	("20150203")
+#define FW_VERSION	("20150211")
 
 #define TRUE 1
 #define FALSE 0
@@ -247,7 +247,7 @@ extern	char	g_din[DIN_SIZE];
 
 // Voltage PWM settings
 #define VOLTAGE_PWM_STEP	(1) 
-#define VOLTAGE_PWM_MAX	    (255)
+#define VOLTAGE_PWM_MAX	    (200)
 #define VOLTAGE_PWM_MIN	    (0)   
 #define DEFAULT_VOLTAGE_PWM (VOLTAGE_PWM_MIN)
 
