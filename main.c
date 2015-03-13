@@ -763,7 +763,7 @@ void do_keep_resonance(void)
 	static int32_t		integral;
 	static int32_t		sum_value;
 	static	uint8_t		looking_up_freq;
-	static	uint8_t		looking_up_bias_pwm;
+	static	uint8_t		looking_up_voltage_pwm;
 	static uint8_t		delta_zero_count;
 	
 	int16_t				amp;
@@ -780,7 +780,7 @@ void do_keep_resonance(void)
 		}
 
 		looking_up_freq = 0;
-		looking_up_bias_pwm = 0;
+		looking_up_voltage_pwm = 0;
 		return;
 	}
 	
@@ -789,7 +789,7 @@ void do_keep_resonance(void)
 	amp = adc_mean_value(ADC_AMP);
 	sei();
 	
-	if ((!looking_up_freq) && (!looking_up_bias_pwm))
+	if ((!looking_up_freq) && (!looking_up_voltage_pwm))
 	{
 		if (0 != timer_id)
 		{
@@ -814,7 +814,7 @@ void do_keep_resonance(void)
 		}
 		else
 		{
-			looking_up_bias_pwm = 1;
+			looking_up_voltage_pwm = 1;
 		}
 		
 		timer_id = start_timer(g_int_timeout + adc_get_timeout(ADC_FEEDBACK_CURRENT));
@@ -862,7 +862,7 @@ void do_keep_resonance(void)
 					
 				if (DELTA_ZERO_COUNT < delta_zero_count)
 				{
-					looking_up_bias_pwm = 1;
+					looking_up_voltage_pwm = 1;
 					delta_zero_count = 0;
 				}
 			}
@@ -873,7 +873,7 @@ void do_keep_resonance(void)
 			}
 		}
 		
-		if (looking_up_bias_pwm)
+		if (looking_up_voltage_pwm)
 		{
 			if (KEEP_CURRENT == g_current_keep_mode)
 			{
@@ -886,19 +886,19 @@ void do_keep_resonance(void)
 				keep_value = g_keep_amp;
 			}
 		
-			if ((new_value < keep_value) && (g_bias_pwm < g_max_bias_pwm))
+			if ((new_value < keep_value) && (g_voltage_pwm < g_max_voltage_pwm))
 			{
-				set_bias_pwm(g_bias_pwm + 1);
+				set_voltage_pwm(g_voltage_pwm + 1);
 				timer_id = start_timer(g_int_timeout + adc_get_timeout(ADC_FEEDBACK_CURRENT) + adc_get_timeout(ADC_AMP));
 			}
-			else if ((new_value > keep_value) && (g_bias_pwm > g_min_bias_pwm))
+			else if ((new_value > keep_value) && (g_voltage_pwm > g_min_voltage_pwm))
 			{
-				set_bias_pwm(g_bias_pwm - 1);
+				set_voltage_pwm(g_voltage_pwm - 1);
 				timer_id = start_timer(g_int_timeout + adc_get_timeout(ADC_FEEDBACK_CURRENT) + adc_get_timeout(ADC_AMP));
 			}
 			else
 			{
-				looking_up_bias_pwm = 0;
+				looking_up_voltage_pwm = 0;
 				g_keep_current = current;
 			}
 		}

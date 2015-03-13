@@ -893,24 +893,13 @@ void menu_search(void)
 	}
 
 	current_value = adc_mean_value(ADC_FEEDBACK_CURRENT);
-	bias_value = adc_mean_value(ADC_BIAS_CURRENT);
-//	amp_value = adc_mean_value(ADC_AMP);
 	
 	curr = adc_feedback_to_current(current_value);
 	if (curr < 0.)
 		curr = 0.;
 	
-	bias = adc_bias_to_current(bias_value);
-	if (bias < 0.)
-		bias = 0.;
-	
-#ifdef _BIAS_CHANGEABLE
-	sprintf(lcd_line1, "F=%-5ld C:%-4.2f T:%-3.2f     ",
-		g_dds_freq, curr, bias);
-#else
-	sprintf(lcd_line1, "   F=%-5ld C:%-4.2f           ",
-		g_dds_freq, curr);
-#endif // _BIAS_CHANGEABLE
+	sprintf(lcd_line1, "F=%-5ld C:%-4.2f V:%-3d     ",
+		g_dds_freq, curr, g_voltage_pwm);
 	menu_common();
 }
 
