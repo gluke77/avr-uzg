@@ -365,7 +365,7 @@ void do_usart(void)
 					case 0x0012:
 						g_adc_bias_multiplier = (uint8_t)value;
 						if (10 > g_adc_bias_multiplier || g_adc_bias_multiplier > 60)
-							g_adc_bias_multiplier = 55;
+							g_adc_bias_multiplier = 29;
 						eeprom_write_byte(ADC_BIAS_MULTIPLIER_ADDR, g_adc_bias_multiplier);
 						break;
 					case 0x0013:
@@ -396,7 +396,7 @@ void do_usart(void)
 					case 0x001C:
 						adc[0].bias = (int16_t)value;
 						if (adc[0].bias > 1000 || adc[0].bias < 0)
-							adc[0].bias = 511;
+							adc[0].bias = 105;
 						eeprom_write_word(ADC0_BIAS_ADDR, adc[0].bias);
 						break;
 					case 0x001D:
