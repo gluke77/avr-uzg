@@ -36,11 +36,9 @@ void do_adc(void);
 uint16_t adc_get_timeout(uint8_t);
 
 //float adc_to_current(int16_t);
-double adc_bias_to_current(int16_t);
 double adc_feedback_to_current(int16_t);
 
 //extern uint8_t		g_adc_multiplier;
-extern uint8_t		g_adc_bias_multiplier;
 extern uint8_t		g_adc_feedback_multiplier;
 
 #ifdef _ADC_CALCULATE_MIN_MAX_DELTA
@@ -48,7 +46,7 @@ extern uint8_t		g_adc_feedback_multiplier;
 #endif /* _ADC_CALCULATE_MIN_MAX_DELTA */
 
 #define ADC_CHANNEL_COUNT		(3)
-#define ADC_REPEAT_COUNT		(512)
+#define ADC_REPEAT_COUNT		(50)
 #define ADC_TIMER_DELAY			(5)
 
 #define ADC_TIMEOUT_MULT		(4)

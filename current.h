@@ -3,22 +3,34 @@
 
 #include "common.h"
 
-// moved to common.h #define SUPERMAX_BIAS_PWM	(70)
-// moved to common.h #define MAX_BIAS_PWM_BASE	(4.)
+#define MAX_BIAS_PWM    (200)
+#define MIN_BIAS_PWM    (0)
+
+#define MAX_WANTED_BIAS (50)
+#define MIN_WANTED_BIAS (0)
+#define DEFAULT_BIAS ((MAX_WANTED_BIAS + MIN_WANTED_BIAS) / 2)
 
 extern uint8_t		g_bias_pwm;
-extern uint8_t		g_bias_pwm_step;
-extern uint8_t		g_bias_pwm_base;
-extern uint8_t		g_bias_pwm_shift;
-extern uint8_t		g_max_bias_pwm;
-extern uint8_t		g_min_bias_pwm;
 extern uint16_t		g_bias_pwm_multiplier;
-extern uint8_t		g_supermax_bias_pwm;
+
+extern uint8_t      g_wanted_bias;
+
+extern uint8_t      g_adc_bias_multiplier;
 
 void bias_pwm_init(void);
-void set_bias_pwm(uint8_t);
-void set_bias_off(void);
-void normalize_bias_pwm_base(void);
-float bias_pwm_to_current(uint8_t);
+void setup_bias();
+void stop_bias(void);
+double bias_pwm_to_current(uint8_t);
+
+void inc_bias_pwm(void);
+void dec_bias_pwm(void);
+
+double get_wanted_bias(void);
+void inc_wanted_bias(void);
+void dec_wanted_bias(void);
+void set_wanted_bias(uint8_t);
+void validate_wanted_bias(void);
+
+double get_bias_adc(void);
 
 #endif /* _CURRENT_INCLUDED */

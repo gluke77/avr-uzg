@@ -1,16 +1,17 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include "current.h"
+#include "adc.h"
+#include "beep.h"
+#include "timer.h"
+
+extern uint16_t g_int_timeout;
 
 uint8_t		g_bias_pwm;
-uint8_t		g_bias_pwm_step = 1;
-uint8_t		g_bias_pwm_base;
-uint8_t		g_bias_pwm_shift;
-uint8_t		g_max_bias_pwm;
-uint8_t		g_min_bias_pwm;
-
 uint16_t	g_bias_pwm_multiplier = 600;
-uint8_t		g_supermax_bias_pwm = SUPERMAX_BIAS_PWM;
+uint8_t     g_wanted_bias = 0;
+
+uint8_t	g_adc_bias_multiplier = 50;
 
 void bias_pwm_init(void)
 {
@@ -58,52 +59,112 @@ void bias_pwm_init(void)
 
 void set_bias_pwm(uint8_t byte)
 {
-	if (g_max_bias_pwm < byte)
-		byte = g_max_bias_pwm;
+	if (MAX_BIAS_PWM < byte)
+		byte = MAX_BIAS_PWM;
 		
-	if ((0 != byte) && (byte < g_min_bias_pwm))
-		byte = g_min_bias_pwm;
+	if ((0 != byte) && (byte < MIN_BIAS_PWM))
+		byte = MIN_BIAS_PWM;
 
-#ifdef _BIAS_CHANGEABLE
 	cli();
 	OCR1B = (uint16_t)byte;
 	sei();
-#endif _BIAS_CHANGEABLE
 	
 	g_bias_pwm = byte;
 }
 
-void set_bias_off(void)
+void stop_bias(void)
 {
-	OCR1B = 0;
+	cli();
+    OCR1B = 0;
+    sei();
 	g_bias_pwm = 0;
 }
 
-float bias_pwm_to_current(uint8_t pwm)
+void inc_bias_pwm()
+{
+    if (g_bias_pwm < MAX_BIAS_PWM)
+    {
+        g_bias_pwm++;
+        set_bias_pwm(g_bias_pwm);
+    }
+}
+
+void dec_bias_pwm()
+{
+    if (g_bias_pwm > MIN_BIAS_PWM)
+    {
+        g_bias_pwm--;
+        if (g_bias_pwm)
+            set_bias_pwm(g_bias_pwm);
+        else
+            stop_bias();
+    }
+}
+
+double bias_pwm_to_current(uint8_t pwm)
 {
 	return pwm * (g_bias_pwm_multiplier / 100.) / 255;
 }
-/*
-void set_supermax_bias_pwm(uint8_t supermax)
-{
-	g_supermax_bias_pwm = supermax;
-	
-	while (bias_pwm_to_current(g_max_bias_pwm) > g_supermax_bias_pwm / 10.)
-		g_max_bias_pwm--;
-	
-	if (g_min_bias_pwm > g_max_bias_pwm)
-		g_min_bias_pwm = g_max_bias_pwm;
-		
-	if (g_bias_pwm_base > g_max_bias_pwm)
-		g_bias_pwm_base = g_max_bias_pwm;
-		
-	if (g_bias_pwm_shift > g_max_bias_pwm - g_bias_pwm_base)
-		g_bias_pwm_shift = g_max_bias_pwm - g_bias_pwm_base;
-}
-*/
 
-void normalize_bias_pwm_base(void)
+double get_wanted_bias()
 {
-	while (bias_pwm_to_current(g_bias_pwm_base) > MAX_BIAS_PWM_BASE)
-		g_bias_pwm_base--;
+    return g_wanted_bias / 10.;
 }
+
+void inc_wanted_bias()
+{
+    if (g_wanted_bias < MAX_WANTED_BIAS)
+        g_wanted_bias++;
+}
+
+void dec_wanted_bias()
+{
+    if (g_wanted_bias > MIN_WANTED_BIAS)
+        g_wanted_bias--;
+}
+
+double adc_value_to_bias(int16_t adc)
+{
+	return adc * g_adc_bias_multiplier / 1000.;
+}
+
+double get_bias_adc()
+{
+    int16_t adc_value = adc_mean_value(ADC_BIAS_CURRENT);
+    double  value = adc_value_to_bias(adc_value);
+    if (value < 0.)
+        value = 0.;
+    return value;
+}
+
+void validate_wanted_bias()
+{
+    if (g_wanted_bias > MAX_WANTED_BIAS)
+        g_wanted_bias = MAX_WANTED_BIAS;
+
+    if (g_wanted_bias < MIN_WANTED_BIAS)
+        g_wanted_bias = MIN_WANTED_BIAS;
+}
+
+void set_wanted_bias(uint8_t wanted_bias)
+{
+    if (wanted_bias > MAX_WANTED_BIAS)
+        wanted_bias = MAX_WANTED_BIAS;
+
+    if (wanted_bias < MIN_WANTED_BIAS)
+        wanted_bias = MIN_WANTED_BIAS;
+
+    g_wanted_bias = wanted_bias;
+}
+
+void setup_bias()
+{
+
+	uint16_t timeout = adc_get_timeout(ADC_BIAS_CURRENT) + g_int_timeout;
+    while (get_wanted_bias() > get_bias_adc() && g_bias_pwm < MAX_BIAS_PWM)
+    {
+        inc_bias_pwm();
+        delay_ms(timeout);
+    }
+}
+

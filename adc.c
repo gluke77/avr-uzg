@@ -8,7 +8,6 @@
 static uint8_t	g_use_interrupt;
 
 uint8_t	g_adc_multiplier = 50;
-uint8_t	g_adc_bias_multiplier = 50;
 uint8_t	g_adc_feedback_multiplier = 50;
 
 uint8_t		admux_value;
@@ -84,8 +83,8 @@ void adc_init(uint8_t use_int)
 		adc[idx].shift = 0;
 	}
 
-    //adc[0].bias = 511;
-	adc[1].bias = 511;
+    adc[ADC_BIAS_CURRENT].bias = 105;
+	adc[ADC_FEEDBACK_CURRENT].bias = 511;
 
 	
 	ADCSRA = _BV(ADPS2) | _BV(ADPS1) | _BV(ADPS0);
@@ -222,10 +221,6 @@ float adc_to_current(int16_t adc)
 	return adc * g_adc_multiplier / 1000.;
 }
 
-double adc_bias_to_current(int16_t adc)
-{
-	return adc * g_adc_bias_multiplier / 1000.;
-}
 
 double adc_feedback_to_current(int16_t adc)
 {

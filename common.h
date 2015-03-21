@@ -215,10 +215,6 @@ extern	char	g_din[DIN_SIZE];
 // next addr 86
 
 #undef _NARROW_FREQ
-#define _BIAS_CHANGEABLE
-#undef _BIAS_SHIFT_CHANGEABLE
-#define _MAX_BIAS_CHANGEABLE
-#define _MIN_BIAS_CHANGEABLE
 #define _INT_TIMEOUT_CHANGEABLE
 #undef _SUPERMAX_BIAS_CHANGEABLE
 #define _POWER_CHANGEABLE
@@ -230,20 +226,13 @@ extern	char	g_din[DIN_SIZE];
 #undef _MAX_VOLTAGE_CHANGEABLE
 #undef _MIN_VOLTAGE_CHANGEABLE
 
-#define DEFAULT_INT_TIMEOUT			(500)
+#define DEFAULT_INT_TIMEOUT			(50)
 
-#define DEFAULT_PFC_MODE			(PFC_OFF)
+#define DEFAULT_PFC_MODE			(PFC_ON)
 
 #define MIN_BIAS_PWM_MULTIPLIER		(700)
 #define MAX_BIAS_PWM_MULTIPLIER		(1500)
 #define DEFAULT_BIAS_PWM_MULTIPLIER	(950)
-
-// PWM (current) settings
-#define SUPERMAX_BIAS_PWM		(100)
-#define MAX_BIAS_PWM_BASE		(8.)
-#define MIN_BIAS_PWM			(10)
-#define DEFAULT_BIAS_PWM_BASE	(50)
-#define DEFAULT_BIAS_PWM_SHIFT	(0)
 
 // Voltage PWM settings
 #define VOLTAGE_PWM_STEP	(1) 

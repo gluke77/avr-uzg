@@ -30,7 +30,6 @@ keep_mode_e				g_current_keep_mode = KEEP_OFF;
 
 int16_t		g_keep_current;
 int16_t		g_keep_amp;
-uint8_t		g_keep_bias_pwm;
 int8_t		g_keep_freq_step;
 int8_t		g_keep_freq_max_delta;
 
@@ -217,11 +216,7 @@ void do_usart(void)
 						dds_setfreq((uint32_t)value);
 						break;
 					case 0x0002:	// set current pwm
-						if (value < g_min_bias_pwm)
-							value = g_min_bias_pwm;
-						if (value > g_max_bias_pwm)
-							value = g_max_bias_pwm;
-						set_bias_pwm((uint8_t)value);
+						set_wanted_bias(value);
 						break;
 					case 0x0003:	// set upper freq
 						g_freq_upper = (uint32_t)value;
@@ -246,49 +241,13 @@ void do_usart(void)
 							dds_setfreq(g_freq_lower);
 						break;
 					case 0x0005:	// set current pwm base
-						g_bias_pwm_base = (uint8_t)value;
-						if (g_max_bias_pwm - g_bias_pwm_shift < g_bias_pwm_base)
-							g_bias_pwm_base = g_max_bias_pwm - g_bias_pwm_shift;
-						if (g_bias_pwm_base < g_min_bias_pwm)
-							g_bias_pwm_base = g_min_bias_pwm;
-
-						normalize_bias_pwm_base();
-
 						break;
-#ifdef _BIAS_SHIFT_CHANGEABLE
 					case 0x0006:	// set current pwm shift
-						g_bias_pwm_shift = (uint8_t)value;
-						if (g_max_bias_pwm < g_bias_pwm_shift + g_bias_pwm_base)
-							g_bias_pwm_shift = g_max_bias_pwm - g_bias_pwm_base;
-						if (g_bias_pwm_shift < 0)
-							g_bias_pwm_shift = 0;
 						break;
-#endif // _BIAS_SHIFT_CHANGEABLE						
-#ifdef _MAX_BIAS_CHANGEABLE
 					case 0x0007:	// set max current pwm
-						g_max_bias_pwm = (uint8_t)value;
-						if (g_max_bias_pwm < g_bias_pwm_base + g_bias_pwm_shift)
-							g_max_bias_pwm = g_bias_pwm_base + g_bias_pwm_shift;
-	
-						if (g_max_bias_pwm > 255)
-							g_max_bias_pwm = 255;
-	
-						while (bias_pwm_to_current(g_max_bias_pwm) > g_supermax_bias_pwm / 10.)
-							g_max_bias_pwm--;
-						
-						if ((IS_UZG_RUN) && (g_max_bias_pwm < g_bias_pwm))
-							set_bias_pwm(g_max_bias_pwm);
 						break;
-#endif // _MAX_BIAS_CHANGEABLE
-#ifdef _MIN_BIAS_CHANGEABLE
 					case 0x0008:	// set min current pwm
-						g_min_bias_pwm = (uint8_t)value;
-						if (g_bias_pwm_base < g_min_bias_pwm)
-							g_min_bias_pwm = g_bias_pwm_base;
-						if ((IS_UZG_RUN) && (g_bias_pwm < g_min_bias_pwm))
-							set_bias_pwm(g_min_bias_pwm);
 						break;
-#endif // _MIN_BIAS_CHANGEABLE
 					case 0x0009:	// set freq step
 						g_keep_freq_step = value;
 						if (10 < g_keep_freq_step)
@@ -531,10 +490,10 @@ void do_usart(void)
 					
 					cmd.value[0] = (uint16_t)g_freq_upper;
 					cmd.value[1] = (uint16_t)g_freq_lower;
-					cmd.value[2] = (uint16_t)g_bias_pwm_base;
-					cmd.value[3] = (uint16_t)g_bias_pwm_shift;
-					cmd.value[4] = (uint16_t)g_max_bias_pwm;
-					cmd.value[5] = (uint16_t)g_min_bias_pwm;
+					cmd.value[2] = (uint16_t)g_wanted_bias;
+					cmd.value[3] = 0;//was g_bias_pwm_shift;
+					cmd.value[4] = 0;//was g_max_bias_pwm;
+					cmd.value[5] = 0;//was g_min_bias_pwm;
 					cmd.value[6] = (uint16_t)g_keep_freq_step;
 					cmd.value[7] = (uint16_t)g_keep_freq_max_delta;
 					cmd.value[8] = (uint16_t)g_temp_stop;
@@ -563,7 +522,7 @@ void do_usart(void)
 				{
 					cmd.addr = 1;
 					
-					cmd.value[0] = (uint16_t)g_supermax_bias_pwm;
+					cmd.value[0] = 0; // was g_supermax_bias_pwm;
 				}
 				else if (0x0012 == cmd.addr)
 				{
@@ -640,15 +599,12 @@ void uzg_run(void)
 	set_power_on();
 	set_power_pwm(g_power_pwm_base);
 	
-#ifdef _BIAS_CHANGEABLE
-	set_bias_pwm(g_bias_pwm_base);
-#endif // _BIAS_CHANGEABLE
     set_voltage_on();
 }
 
 void uzg_stop(void)
 {
-	set_bias_off();
+	stop_bias();
 	set_power_off();
     set_voltage_off();
 }
@@ -700,6 +656,8 @@ void start(void)
 	}
 	
 	uzg_run();
+
+    setup_bias();
 
 	if (AUTOSEARCH_ON == g_autosearch_mode)
 	{
@@ -920,7 +878,6 @@ void keep_start(void)
 	g_keep_current = adc_mean_value(ADC_FEEDBACK_CURRENT);
 	g_keep_amp = adc_mean_value(ADC_AMP);
 	sei();
-	g_keep_bias_pwm = g_bias_pwm;
 	sprintf(lcd_line1,"C:%-8.1fA:%-10d", adc_feedback_to_current(g_keep_current), g_keep_amp);
 	do_lcd();
 	_delay_ms(500);

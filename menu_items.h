@@ -12,7 +12,6 @@ void menu_freq_step(void);
 void menu_current(void);
 void menu_power(void);
 void menu_voltage(void);
-void menu_monitor(void);
 
 void menu_adc0(void);
 void menu_adc1(void);
@@ -43,11 +42,7 @@ void menu_pfc_mode(void);
 void menu_store_settings(void);
 void menu_reset_settings(void);
 
-void menu_bias_pwm_base(void);
-void menu_bias_pwm_shift(void);
-void menu_max_bias_pwm(void);
-void menu_min_bias_pwm(void);
-void menu_bias_pwm_multiplier(void);
+void menu_wanted_bias(void);
 
 void menu_power_pwm_base(void);
 void menu_power_pwm_shift(void);
