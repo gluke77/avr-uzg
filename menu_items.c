@@ -318,7 +318,15 @@ void menu_freq_step(void)
 
 void menu_current(void)
 {
-	sprintf(lcd_line1, "CURRENT= %.2fA            ", bias_pwm_to_current(g_bias_pwm));
+	int16_t bias_value;
+    float   bias;
+
+    bias_value = adc_mean_value(ADC_BIAS_CURRENT);
+    bias = adc_bias_to_current(bias_value);
+    if (bias < .0)
+        bias = 0.;
+
+    sprintf(lcd_line1, "CURRENT= %-4.2fA : %-4.2fA        ", bias_pwm_to_current(g_bias_pwm), bias);
 
 	if (KEY_PRESSED(KEY_RIGHT))
 	{
