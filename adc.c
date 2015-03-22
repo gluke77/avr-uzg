@@ -83,7 +83,7 @@ void adc_init(uint8_t use_int)
 		adc[idx].shift = 0;
 	}
 
-    adc[ADC_BIAS_CURRENT].bias = 105;
+    adc[ADC_BIAS_CURRENT].bias = 511;
 	adc[ADC_FEEDBACK_CURRENT].bias = 511;
 
 	
