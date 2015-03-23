@@ -1051,7 +1051,7 @@ void check_settings(void)
 	
 	if (10 > g_adc_bias_multiplier || g_adc_bias_multiplier > 60)
 	{
-		g_adc_bias_multiplier = 30;
+		g_adc_bias_multiplier = 55;
 		eeprom_write_byte(ADC_BIAS_MULTIPLIER_ADDR, g_adc_bias_multiplier);
 	}
 		
@@ -1063,7 +1063,7 @@ void check_settings(void)
 
 	if (adc[0].bias > 1000 || adc[0].bias < 0)
 	{
-		adc[0].bias = 105;
+		adc[0].bias = 511;
 		eeprom_write_word(ADC0_BIAS_ADDR, adc[0].bias);
 	}
 

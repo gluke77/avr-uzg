@@ -46,7 +46,7 @@ extern uint8_t		g_adc_feedback_multiplier;
 #endif /* _ADC_CALCULATE_MIN_MAX_DELTA */
 
 #define ADC_CHANNEL_COUNT		(3)
-#define ADC_REPEAT_COUNT		(50)
+#define ADC_REPEAT_COUNT		(200)
 #define ADC_TIMER_DELAY			(5)
 
 #define ADC_TIMEOUT_MULT		(4)
