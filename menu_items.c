@@ -78,7 +78,7 @@ void menu_items_init(void)
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_freq_upper;
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_freq_lower;
 
-	menu_items[MENU_MODE_SETTINGS][idx++] = menu_wanted_bias;
+	menu_items[MENU_MODE_SETTINGS][idx++] = menu_start_bias;
 
 #ifdef _VOLTAGE_CHANGEABLE
 #ifdef _MAX_VOLTAGE_CHANGEABLE
@@ -262,8 +262,7 @@ void menu_freq_step(void)
 
 void menu_current(void)
 {
-    sprintf(lcd_line1, "BIAS= %-3.1f %-3.1f %d        ",
-        get_wanted_bias(),
+    sprintf(lcd_line1, "CURRENT= %-3.1fA %d        ",
         get_bias_adc(),
         g_bias_pwm);
 
@@ -346,20 +345,20 @@ void menu_voltage(void)
 	menu_common();
 }
 
-void menu_wanted_bias(void)
+void menu_start_bias(void)
 {
-	sprintf(lcd_line1, "CURRENT= %.2fA     ", get_wanted_bias());
+	sprintf(lcd_line1, "START CURRENT= %d     ", get_start_bias());
 
 	if (KEY_PRESSED(KEY_RIGHT))
 	{
-		inc_wanted_bias();
+		inc_start_bias();
 		
 		CLEAR_KEY_PRESSED(KEY_RIGHT);
 	}
 
 	if (KEY_PRESSED(KEY_LEFT))
 	{
-		dec_wanted_bias();
+		dec_start_bias();
 			
 		CLEAR_KEY_PRESSED(KEY_LEFT);
 	}
@@ -1126,7 +1125,7 @@ void loadFromEE(void)
 	g_dds_freq = (uint32_t)eeprom_read_word(FREQ_ADDR);
 	dds_setfreq(g_dds_freq);
 		
-	g_wanted_bias = eeprom_read_byte(PWM_BASE_ADDR);
+	g_start_bias = eeprom_read_byte(PWM_BASE_ADDR);
 	
 	set_pfc_mode(eeprom_read_byte(PFC_MODE_ADDR));
 	
@@ -1182,7 +1181,7 @@ void storeToEE(void)
 	eeprom_write_word(FREQ_UPPER_ADDR, (uint16_t)g_freq_upper);
 	eeprom_write_word(FREQ_LOWER_ADDR, (uint16_t)g_freq_lower);
 	eeprom_write_word(FREQ_ADDR, (uint16_t)g_dds_freq);
-	eeprom_write_byte(PWM_BASE_ADDR, g_wanted_bias);
+	eeprom_write_byte(PWM_BASE_ADDR, g_start_bias);
 	
 	eeprom_write_byte(PFC_MODE_ADDR, g_pfc_mode);
 	eeprom_write_word(INT_TIMEOUT_ADDR, g_int_timeout);
@@ -1236,7 +1235,7 @@ void reset_settings(void)
 
 	dds_setfreq((g_freq_upper + g_freq_lower) / 2);
 
-	g_wanted_bias = DEFAULT_BIAS;
+	g_start_bias = DEFAULT_BIAS;
 	
 	g_int_timeout = DEFAULT_INT_TIMEOUT;
 	g_keep_mode = KEEP_CURRENT;
@@ -1289,7 +1288,7 @@ void check_settings(void)
 	
 	if (10 > g_adc_bias_multiplier || g_adc_bias_multiplier > 60)
 	{
-		g_adc_bias_multiplier = 55;
+		g_adc_bias_multiplier = 29;
 		eeprom_write_byte(ADC_BIAS_MULTIPLIER_ADDR, g_adc_bias_multiplier);
 	}
 		
@@ -1301,7 +1300,7 @@ void check_settings(void)
 
 	if (adc[0].bias > 1000 || adc[0].bias < 0)
 	{
-		adc[0].bias = 511;
+		adc[0].bias = 105;
 		eeprom_write_word(ADC0_BIAS_ADDR, adc[0].bias);
 	}
 
@@ -1348,7 +1347,7 @@ void check_settings(void)
 	if (g_dds_freq > g_freq_upper || g_dds_freq < g_freq_lower)
 		dds_setfreq((g_freq_upper + g_freq_lower) / 2);
 
-	validate_wanted_bias();
+	validate_start_bias();
 		
 #ifdef _POWER_CHANGEABLE		
 	if (POWER_PWM_MAX < g_max_power_pwm || POWER_PWM_MIN > g_max_power_pwm)

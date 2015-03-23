@@ -9,7 +9,7 @@ extern uint16_t g_int_timeout;
 
 uint8_t		g_bias_pwm;
 uint16_t	g_bias_pwm_multiplier = 600;
-uint8_t     g_wanted_bias = 0;
+uint8_t     g_start_bias = 0;
 
 uint8_t	g_adc_bias_multiplier = 50;
 
@@ -106,21 +106,21 @@ double bias_pwm_to_current(uint8_t pwm)
 	return pwm * (g_bias_pwm_multiplier / 100.) / 255;
 }
 
-double get_wanted_bias()
+uint8_t get_start_bias()
 {
-    return g_wanted_bias / 10.;
+    return g_start_bias;
 }
 
-void inc_wanted_bias()
+void inc_start_bias()
 {
-    if (g_wanted_bias < MAX_WANTED_BIAS)
-        g_wanted_bias++;
+    if (g_start_bias < MAX_START_BIAS)
+        g_start_bias++;
 }
 
-void dec_wanted_bias()
+void dec_start_bias()
 {
-    if (g_wanted_bias > MIN_WANTED_BIAS)
-        g_wanted_bias--;
+    if (g_start_bias > MIN_START_BIAS)
+        g_start_bias--;
 }
 
 double adc_value_to_bias(int16_t adc)
@@ -137,34 +137,28 @@ double get_bias_adc()
     return value;
 }
 
-void validate_wanted_bias()
+void validate_start_bias()
 {
-    if (g_wanted_bias > MAX_WANTED_BIAS)
-        g_wanted_bias = MAX_WANTED_BIAS;
+    if (g_start_bias > MAX_START_BIAS)
+        g_start_bias = MAX_START_BIAS;
 
-    if (g_wanted_bias < MIN_WANTED_BIAS)
-        g_wanted_bias = MIN_WANTED_BIAS;
+    if (g_start_bias < MIN_START_BIAS)
+        g_start_bias = MIN_START_BIAS;
 }
 
-void set_wanted_bias(uint8_t wanted_bias)
+void set_start_bias(uint8_t start_bias)
 {
-    if (wanted_bias > MAX_WANTED_BIAS)
-        wanted_bias = MAX_WANTED_BIAS;
+    if (start_bias > MAX_START_BIAS)
+        start_bias = MAX_START_BIAS;
 
-    if (wanted_bias < MIN_WANTED_BIAS)
-        wanted_bias = MIN_WANTED_BIAS;
+    if (start_bias < MIN_START_BIAS)
+        start_bias = MIN_START_BIAS;
 
-    g_wanted_bias = wanted_bias;
+    g_start_bias = start_bias;
 }
 
 void setup_bias()
 {
-
-	uint16_t timeout = adc_get_timeout(ADC_BIAS_CURRENT) + g_int_timeout;
-    while (get_wanted_bias() > get_bias_adc() && g_bias_pwm < MAX_BIAS_PWM)
-    {
-        inc_bias_pwm();
-        delay_ms(timeout);
-    }
+    set_bias_pwm(g_start_bias);
 }
 

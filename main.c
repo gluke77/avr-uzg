@@ -216,7 +216,7 @@ void do_usart(void)
 						dds_setfreq((uint32_t)value);
 						break;
 					case 0x0002:	// set current pwm
-						set_wanted_bias(value);
+						set_start_bias(value);
 						break;
 					case 0x0003:	// set upper freq
 						g_freq_upper = (uint32_t)value;
@@ -324,7 +324,7 @@ void do_usart(void)
 					case 0x0012:
 						g_adc_bias_multiplier = (uint8_t)value;
 						if (10 > g_adc_bias_multiplier || g_adc_bias_multiplier > 60)
-							g_adc_bias_multiplier = 55;
+							g_adc_bias_multiplier = 29;
 						eeprom_write_byte(ADC_BIAS_MULTIPLIER_ADDR, g_adc_bias_multiplier);
 						break;
 					case 0x0013:
@@ -355,7 +355,7 @@ void do_usart(void)
 					case 0x001C:
 						adc[0].bias = (int16_t)value;
 						if (adc[0].bias > 1000 || adc[0].bias < 0)
-							adc[0].bias = 511;
+							adc[0].bias = 105;
 						eeprom_write_word(ADC0_BIAS_ADDR, adc[0].bias);
 						break;
 					case 0x001D:
@@ -490,7 +490,7 @@ void do_usart(void)
 					
 					cmd.value[0] = (uint16_t)g_freq_upper;
 					cmd.value[1] = (uint16_t)g_freq_lower;
-					cmd.value[2] = (uint16_t)g_wanted_bias;
+					cmd.value[2] = (uint16_t)g_start_bias;
 					cmd.value[3] = 0;//was g_bias_pwm_shift;
 					cmd.value[4] = 0;//was g_max_bias_pwm;
 					cmd.value[5] = 0;//was g_min_bias_pwm;

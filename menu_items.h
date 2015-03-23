@@ -42,7 +42,7 @@ void menu_pfc_mode(void);
 void menu_store_settings(void);
 void menu_reset_settings(void);
 
-void menu_wanted_bias(void);
+void menu_start_bias(void);
 
 void menu_power_pwm_base(void);
 void menu_power_pwm_shift(void);
