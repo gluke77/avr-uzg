@@ -3,15 +3,12 @@
 #include "voltage.h"
 #include "common.h"
 
-uint8_t		g_voltage_pwm = DEFAULT_VOLTAGE_PWM;
-uint8_t		g_voltage_pwm_base = DEFAULT_VOLTAGE_PWM;
-uint8_t		g_voltage_pwm_step = VOLTAGE_PWM_STEP;
-uint8_t		g_max_voltage_pwm = VOLTAGE_PWM_MAX;
-uint8_t		g_min_voltage_pwm = VOLTAGE_PWM_MIN;
+uint8_t		g_voltage_pwm = VOLTAGE_BIAS;
+uint8_t		g_start_voltage = DEFAULT_VOLTAGE_PWM;
 
 void set_voltage_on(void)
 {
-    set_voltage_pwm(g_voltage_pwm_base);
+    set_voltage_pwm(get_start_voltage());
 	SETBIT(TCCR2, CS21);
 }
 
@@ -19,7 +16,8 @@ void set_voltage_off(void)
 {
     // Disable clock source
 	CLEARBIT(TCCR2, CS21);
-    set_voltage_pwm(0);
+    OCR2 = 0;
+    g_voltage_pwm = VOLTAGE_BIAS;
 }
 
 uint8_t is_voltage_on(void)
@@ -44,8 +42,6 @@ void voltage_pwm_init(void)
 	CLEARBIT(TCCR2, CS21);
 	CLEARBIT(TCCR2, CS22);
 
-	OCR2 = g_voltage_pwm_base;
-
     set_voltage_off();
 	
 	// PB7/OC2 output
@@ -54,12 +50,81 @@ void voltage_pwm_init(void)
 
 void set_voltage_pwm(uint8_t byte)
 {
-	if (g_max_voltage_pwm < byte)
-		byte = g_max_voltage_pwm;
-		
-	if (byte < g_min_voltage_pwm)
-		byte = g_min_voltage_pwm;
-		
-	OCR2 = byte;
+    byte += VOLTAGE_BIAS;
+
+	if (byte > MAX_VOLTAGE_PWM)
+        byte = MAX_VOLTAGE_PWM;
+
+    if (byte < MIN_VOLTAGE_PWM)
+        byte = MIN_VOLTAGE_PWM;
+	
+    OCR2 = byte;
 	g_voltage_pwm = byte;
+}
+
+uint8_t get_voltage_pwm()
+{
+    return g_voltage_pwm - VOLTAGE_BIAS;
+}
+
+void inc_voltage_pwm()
+{
+    if (g_voltage_pwm < MAX_VOLTAGE_PWM)
+    {
+        g_voltage_pwm++;
+        set_voltage_pwm(g_voltage_pwm);
+    }
+}
+
+void dec_voltage_pwm()
+{
+    if (g_voltage_pwm > MIN_VOLTAGE_PWM)
+    {
+        g_voltage_pwm--;
+        set_voltage_pwm(g_voltage_pwm);
+    }
+}
+
+uint8_t get_start_voltage()
+{
+    return g_start_voltage - VOLTAGE_BIAS;
+}
+
+void set_start_voltage(uint8_t byte)
+{
+    byte += VOLTAGE_BIAS;
+
+	if (byte > MAX_VOLTAGE_PWM)
+        byte = MAX_VOLTAGE_PWM;
+
+    if (byte < MIN_VOLTAGE_PWM)
+        byte = MIN_VOLTAGE_PWM;
+	
+	g_start_voltage = byte;
+}
+
+void inc_start_voltage()
+{
+    if (g_start_voltage < MAX_VOLTAGE_PWM)
+        g_start_voltage++;
+}
+
+void dec_start_voltage()
+{
+    if (g_start_voltage > MIN_VOLTAGE_PWM)
+        g_start_voltage--;
+}
+
+void validate_start_voltage()
+{
+	if (g_start_voltage > MAX_VOLTAGE_PWM)
+        g_start_voltage = MAX_VOLTAGE_PWM;
+
+    if (g_start_voltage < MIN_VOLTAGE_PWM)
+        g_start_voltage = MIN_VOLTAGE_PWM;
+}
+
+void reset_start_voltage()
+{
+    g_start_voltage = DEFAULT_VOLTAGE_PWM;
 }

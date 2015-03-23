@@ -102,7 +102,6 @@ int main(void)
 	usart1_setprotocol_modbus();
 
 	set_power_pwm(g_power_pwm_base);
-    set_voltage_pwm(g_voltage_pwm_base);
 
 	stop(STOP_BUTTON);
 	sei();
@@ -844,14 +843,14 @@ void do_keep_resonance(void)
 				keep_value = g_keep_amp;
 			}
 		
-			if ((new_value < keep_value) && (g_voltage_pwm < g_max_voltage_pwm))
+			if ((new_value < keep_value) && (g_voltage_pwm < MAX_VOLTAGE_PWM))
 			{
-				set_voltage_pwm(g_voltage_pwm + 1);
+				inc_voltage_pwm();
 				timer_id = start_timer(g_int_timeout + adc_get_timeout(ADC_FEEDBACK_CURRENT) + adc_get_timeout(ADC_AMP));
 			}
-			else if ((new_value > keep_value) && (g_voltage_pwm > g_min_voltage_pwm))
+			else if ((new_value > keep_value) && (g_voltage_pwm > MIN_VOLTAGE_PWM))
 			{
-				set_voltage_pwm(g_voltage_pwm - 1);
+				dec_voltage_pwm();
 				timer_id = start_timer(g_int_timeout + adc_get_timeout(ADC_FEEDBACK_CURRENT) + adc_get_timeout(ADC_AMP));
 			}
 			else

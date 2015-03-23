@@ -3,12 +3,12 @@
 
 #include "common.h"
 
-#define MAX_BIAS_PWM    (200)
-#define MIN_BIAS_PWM    (0)
+#define MAX_BIAS_PWM    (110)
+#define MIN_BIAS_PWM    (50)
 
-#define MAX_START_BIAS (200)
-#define MIN_START_BIAS (0)
-#define DEFAULT_BIAS ((MAX_START_BIAS + MIN_START_BIAS) / 2)
+#define MAX_START_BIAS (MAX_BIAS_PWM)
+#define MIN_START_BIAS (MIN_BIAS_PWM)
+#define DEFAULT_BIAS (100)
 
 extern uint8_t		g_bias_pwm;
 extern uint16_t		g_bias_pwm_multiplier;

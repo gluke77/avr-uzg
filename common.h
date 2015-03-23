@@ -226,18 +226,12 @@ extern	char	g_din[DIN_SIZE];
 #undef _MAX_VOLTAGE_CHANGEABLE
 #undef _MIN_VOLTAGE_CHANGEABLE
 
-#define DEFAULT_INT_TIMEOUT			(50)
+#define DEFAULT_INT_TIMEOUT			(100)
 
 #define DEFAULT_PFC_MODE			(PFC_ON)
 
 #define MIN_BIAS_PWM_MULTIPLIER		(700)
 #define MAX_BIAS_PWM_MULTIPLIER		(1500)
 #define DEFAULT_BIAS_PWM_MULTIPLIER	(950)
-
-// Voltage PWM settings
-#define VOLTAGE_PWM_STEP	(1) 
-#define VOLTAGE_PWM_MAX	    (200)
-#define VOLTAGE_PWM_MIN	    (0)   
-#define DEFAULT_VOLTAGE_PWM (VOLTAGE_PWM_MIN)
 
 #endif /* __COMMON_H_INCLUDED_*/

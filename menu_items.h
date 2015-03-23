@@ -49,9 +49,7 @@ void menu_power_pwm_shift(void);
 void menu_max_power_pwm(void);
 void menu_min_power_pwm(void);
 
-void menu_voltage_pwm_base(void);
-void menu_max_voltage_pwm(void);
-void menu_min_voltage_pwm(void);
+void menu_start_voltage(void);
 
 void menu_int_timeout(void);
 
