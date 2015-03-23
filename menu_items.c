@@ -54,7 +54,7 @@ void menu_items_init(void)
 #ifdef _VOLTAGE_CHANGEABLE
 	menu_items[MENU_MODE_WORK][idx++] = menu_voltage;
 #endif // _VOLTAGE_CHANGEABLE
-	menu_items[MENU_MODE_WORK][idx++] = menu_amp;
+//	menu_items[MENU_MODE_WORK][idx++] = menu_amp;
 	menu_items[MENU_MODE_WORK][idx++] = menu_temp;
 	menu_items[MENU_MODE_WORK][idx++] = menu_temp2;
 	menu_items[MENU_MODE_WORK][idx++] = menu_stop_mode;
@@ -86,17 +86,14 @@ void menu_items_init(void)
 
 
 #ifdef _POWER_CHANGEABLE	
-	menu_items[MENU_MODE_SETTINGS][idx++] = menu_max_power_pwm;
-	menu_items[MENU_MODE_SETTINGS][idx++] = menu_min_power_pwm;
-	menu_items[MENU_MODE_SETTINGS][idx++] = menu_power_pwm_base;
-	menu_items[MENU_MODE_SETTINGS][idx++] = menu_power_pwm_shift;
+	menu_items[MENU_MODE_SETTINGS][idx++] = menu_start_power;
 #endif // _POWER_CHANGEABLE
 
 #ifdef _INT_TIMEOUT_CHANGEABLE
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_int_timeout; //-
 #endif // _INT_TIMEOUT_CHANGEABLE
 	
-	menu_items[MENU_MODE_SETTINGS][idx++] = menu_pfc_mode;
+//	menu_items[MENU_MODE_SETTINGS][idx++] = menu_pfc_mode;
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_autosearch_mode;
 
 #ifdef _STARTBUTTON_ENABLED
@@ -258,7 +255,7 @@ void menu_current(void)
 {
     sprintf(lcd_line1, "CURRENT= %-3.1fA %d%%        ",
         get_bias_adc(),
-        g_bias_pwm);
+        get_bias_pwm());
 
 	if (KEY_PRESSED(KEY_RIGHT))
 	{
@@ -279,28 +276,18 @@ void menu_current(void)
 
 void menu_power(void)
 {
-	sprintf(lcd_line1, "POWER= %2d%%               ", g_power_pwm + 1);
+	sprintf(lcd_line1, "POWER= %2d%%               ", get_power_pwm());
 
 	if (KEY_PRESSED(KEY_RIGHT))
 	{
-		if (g_max_power_pwm - g_power_pwm < g_power_pwm_step)
-			g_power_pwm = g_max_power_pwm;
-		else
-			g_power_pwm += g_power_pwm_step;
-		
-		set_power_pwm(g_power_pwm);
+        inc_power_pwm();
 
 		CLEAR_KEY_PRESSED(KEY_RIGHT);
 	}
 
 	if (KEY_PRESSED(KEY_LEFT))
 	{
-		if (g_power_pwm < g_min_power_pwm + g_power_pwm_step)
-			g_power_pwm = g_min_power_pwm;
-		else
-			g_power_pwm -= g_power_pwm_step;
-			
-		set_power_pwm(g_power_pwm);
+        dec_power_pwm();
 
 		CLEAR_KEY_PRESSED(KEY_LEFT);
 	}
@@ -337,114 +324,24 @@ void menu_start_bias(void)
 }
 
 
-void menu_power_pwm_base(void)
+void menu_start_power(void)
 {
-	sprintf(lcd_line1, "START POWER= %2d%%     ", g_power_pwm_base + 1);
+	sprintf(lcd_line1, "START POWER= %2d%%     ", get_start_power());
 
 	if (KEY_PRESSED(KEY_RIGHT))
 	{
-		if (g_max_power_pwm - g_power_pwm_shift < g_power_pwm_base)
-			g_power_pwm_base = g_max_power_pwm - g_power_pwm_shift;
-		else
-			g_power_pwm_base++;
-		
+	    inc_start_power();
+
 		CLEAR_KEY_PRESSED(KEY_RIGHT);
 	}
 
 	if (KEY_PRESSED(KEY_LEFT))
 	{
-		if (g_power_pwm_base < g_min_power_pwm)
-			g_power_pwm_base = g_min_power_pwm;
-		else
-			g_power_pwm_base--;
+        dec_start_power();
 			
 		CLEAR_KEY_PRESSED(KEY_LEFT);
 	}
 
-	menu_common();
-}
-
-
-void menu_power_pwm_shift(void)
-{
-	sprintf(lcd_line1, "ADD. POWER= %2d%%       ", g_power_pwm_shift);
-
-	if (KEY_PRESSED(KEY_RIGHT))
-	{
-		if (g_max_power_pwm - g_power_pwm_shift < g_power_pwm_base)
-			g_power_pwm_shift = g_max_power_pwm - g_power_pwm_base;
-		else
-			g_power_pwm_shift++;
-		
-		CLEAR_KEY_PRESSED(KEY_RIGHT);
-	}
-
-	if (KEY_PRESSED(KEY_LEFT))
-	{
-		if (g_power_pwm_shift <= 0 || g_max_power_pwm - g_power_pwm_shift < g_power_pwm_base)
-			g_power_pwm_shift = 0;
-		else
-			g_power_pwm_shift--;
-
-			
-		CLEAR_KEY_PRESSED(KEY_LEFT);
-	}
-
-	menu_common();
-}
-
-void menu_max_power_pwm(void)
-{
-	if (KEY_PRESSED(KEY_LEFT))
-	{
-		if ((g_power_pwm_base + g_power_pwm_shift < g_max_power_pwm) &&
-			(g_min_power_pwm < g_max_power_pwm))
-			g_max_power_pwm--;
-
-		if ((IS_UZG_RUN) && (g_power_pwm > g_max_power_pwm))
-			set_power_pwm(g_max_power_pwm);
-
-		CLEAR_KEY_PRESSED(KEY_LEFT);
-	}
-
-	if (KEY_PRESSED(KEY_RIGHT))
-	{
-		if (POWER_PWM_MAX > g_max_power_pwm)
-			g_max_power_pwm++;
-
-		CLEAR_KEY_PRESSED(KEY_RIGHT);
-	}
-		
-	sprintf(lcd_line1, "MAX POWER= %d%%       ", g_max_power_pwm + 1);
-	
-	menu_common();
-}
-
-
-void menu_min_power_pwm(void)
-{
-	if (KEY_PRESSED(KEY_LEFT))
-	{
-		if (POWER_PWM_MIN < g_min_power_pwm)
-			g_min_power_pwm--;
-
-		CLEAR_KEY_PRESSED(KEY_LEFT);
-	}
-
-	if (KEY_PRESSED(KEY_RIGHT))
-	{
-		if ((g_power_pwm_base > g_min_power_pwm) &&
-			(g_max_power_pwm > g_min_power_pwm))
-			g_min_power_pwm++;
-
-		if ((IS_UZG_RUN) && (g_power_pwm < g_min_power_pwm))
-			set_power_pwm(g_min_power_pwm);
-
-		CLEAR_KEY_PRESSED(KEY_RIGHT);
-	}
-		
-	sprintf(lcd_line1, "MIN POWER= %d%%         ", g_min_power_pwm + 1);
-	
 	menu_common();
 }
 
@@ -599,7 +496,6 @@ void menu_search_auto(void)
 				right_freq_0 = left_freq_0;
 				
 			dds_setfreq((left_freq_0 + right_freq_0)/2);
-			set_power_pwm(g_power_pwm_base + g_power_pwm_shift);
 			menu_item_next();
 			keep_start();
 			
@@ -818,7 +714,7 @@ void menu_pfc_mode(void)
 	menu_common();
 }
 
-char	keep_mode_str[KEEP_COUNT][6] = {"", "OFF", "CURR.", "AMP."};
+char	keep_mode_str[KEEP_COUNT][6] = {"", "OFF", "ON" /*"CURR."*/, "AMP."};
 
 void menu_keep_mode(void)
 {
@@ -1007,7 +903,7 @@ void loadFromEE(void)
 	g_dds_freq = (uint32_t)eeprom_read_word(FREQ_ADDR);
 	dds_setfreq(g_dds_freq);
 		
-	g_start_bias = eeprom_read_byte(PWM_BASE_ADDR);
+	set_start_bias(eeprom_read_byte(PWM_BASE_ADDR));
 	
 	set_pfc_mode(eeprom_read_byte(PFC_MODE_ADDR));
 	
@@ -1027,10 +923,8 @@ void loadFromEE(void)
 	g_temp_stop[1] = eeprom_read_word(TEMP2_STOP_ADDR);
 
 	
-	g_power_pwm_base = eeprom_read_byte(POWER_PWM_BASE_ADDR);
-	g_power_pwm_shift = eeprom_read_byte(POWER_PWM_SHIFT_ADDR);
-	g_max_power_pwm = eeprom_read_byte(MAX_POWER_PWM_ADDR);
-	g_min_power_pwm = eeprom_read_byte(MIN_POWER_PWM_ADDR);
+	set_start_power(eeprom_read_byte(POWER_PWM_BASE_ADDR));
+
 	g_autosearch_mode = eeprom_read_byte(AUTOSEARCH_MODE_ADDR);
 	fault_interrupts_init(eeprom_read_byte(FAULT_INTERRUPTS_MODE_ADDR));
 
@@ -1061,7 +955,7 @@ void storeToEE(void)
 	eeprom_write_word(FREQ_UPPER_ADDR, (uint16_t)g_freq_upper);
 	eeprom_write_word(FREQ_LOWER_ADDR, (uint16_t)g_freq_lower);
 	eeprom_write_word(FREQ_ADDR, (uint16_t)g_dds_freq);
-	eeprom_write_byte(PWM_BASE_ADDR, g_start_bias);
+	eeprom_write_byte(PWM_BASE_ADDR, get_start_bias());
 	
 	eeprom_write_byte(PFC_MODE_ADDR, g_pfc_mode);
 	eeprom_write_word(INT_TIMEOUT_ADDR, g_int_timeout);
@@ -1078,10 +972,7 @@ void storeToEE(void)
 	eeprom_write_word(TEMP2_ALARM_ADDR, g_temp_alarm[1]);
 	eeprom_write_word(TEMP2_STOP_ADDR, g_temp_stop[1]);
 
-	eeprom_write_byte(POWER_PWM_BASE_ADDR, g_power_pwm_base);
-	eeprom_write_byte(POWER_PWM_SHIFT_ADDR, g_power_pwm_shift);
-	eeprom_write_byte(MAX_POWER_PWM_ADDR, g_max_power_pwm);
-	eeprom_write_byte(MIN_POWER_PWM_ADDR, g_min_power_pwm);
+	eeprom_write_byte(POWER_PWM_BASE_ADDR, get_start_power());
 	eeprom_write_byte(AUTOSEARCH_MODE_ADDR, g_autosearch_mode);
 	eeprom_write_byte(FAULT_INTERRUPTS_MODE_ADDR, g_fault_interrupts_mode);
 	
@@ -1113,7 +1004,7 @@ void reset_settings(void)
 
 	dds_setfreq((g_freq_upper + g_freq_lower) / 2);
 
-	g_start_bias = DEFAULT_BIAS;
+	reset_start_bias();
 	
 	g_int_timeout = DEFAULT_INT_TIMEOUT;
 	g_keep_mode = KEEP_CURRENT;
@@ -1140,12 +1031,8 @@ void reset_settings(void)
 
 	set_pfc_mode(DEFAULT_PFC_MODE);
 	
-	g_power_pwm_base = 99;
-	g_power_pwm_shift = 0;
+    reset_start_power();
 
-	g_max_power_pwm = POWER_PWM_MAX;
-	g_min_power_pwm = POWER_PWM_MIN;
-	
 #ifdef _STARTBUTTON_ENABLED
 	g_startbutton_mode = STARTBUTTON_ON;
 #else 
@@ -1225,30 +1112,7 @@ void check_settings(void)
 
 	validate_start_bias();
 		
-#ifdef _POWER_CHANGEABLE		
-	if (POWER_PWM_MAX < g_max_power_pwm || POWER_PWM_MIN > g_max_power_pwm)
-		g_max_power_pwm = POWER_PWM_MAX;
-
-	if (POWER_PWM_MIN > g_min_power_pwm || g_max_power_pwm < g_min_power_pwm)
-		g_min_power_pwm = POWER_PWM_MIN;
-
-	if (g_min_power_pwm > g_max_power_pwm)
-		g_min_power_pwm = g_max_power_pwm;
-		
-	if (g_power_pwm_base > g_max_power_pwm)
-		g_power_pwm_base = g_max_power_pwm;
-
-	if (g_power_pwm_base < g_min_power_pwm)
-		g_power_pwm_base = g_min_power_pwm;
-
-	if (g_power_pwm_shift > g_max_power_pwm - g_power_pwm_base)
-		g_power_pwm_shift = g_max_power_pwm - g_power_pwm_base;
-#else // _POWER_CHANGEABLE
-	g_max_power_pwm = POWER_PWM_MAX;
-	g_min_power_pwm = POWER_PWM_MIN;
-	g_power_pwm_base = 99;
-	g_power_pwm_shift = 0;
-#endif // _POWER_CHANGEABLE
+	validate_start_power();
 		
 #ifdef _INT_TIMEOUT_CHANGEABLE
 	if (g_int_timeout > 1000)

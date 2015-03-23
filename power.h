@@ -3,21 +3,27 @@
 
 #include "common.h"
 
-extern uint8_t		g_power_pwm;
-extern uint8_t		g_power_pwm_step;
-extern uint8_t		g_power_pwm_base;
-extern uint8_t		g_power_pwm_shift;
-extern uint8_t		g_max_power_pwm;
-extern uint8_t		g_min_power_pwm;
+#define MAX_POWER_PWM	    (100)
+#define MIN_POWER_PWM	    (30)   
+#define DEFAULT_POWER_PWM   (100)
+#define POWER_BIAS          (-1)
 
 void power_pwm_init(void);
-void set_power_pwm(uint8_t);
 
 void set_power_on(void);
 void set_power_off(void);
 uint8_t is_power_on(void);
 
-#define POWER_PWM_MAX	(99)
-#define POWER_PWM_MIN	(29)
+uint8_t get_power_pwm(void);
+void set_power_pwm(uint8_t);
+void inc_power_pwm(void);
+void dec_power_pwm(void);
+
+uint8_t get_start_power(void);
+void set_start_power(uint8_t);
+void inc_start_power(void);
+void dec_start_power(void);
+void validate_start_power(void);
+void reset_start_power(void);
 
 #endif /* _POWER_INCLUDED */

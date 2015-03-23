@@ -57,6 +57,11 @@ void bias_pwm_init(void)
 	sei();
 }
 
+uint8_t get_bias_pwm()
+{
+    return g_bias_pwm;
+}
+
 void set_bias_pwm(uint8_t byte)
 {
 	if (MAX_BIAS_PWM < byte)
@@ -80,9 +85,14 @@ void stop_bias(void)
 	g_bias_pwm = 0;
 }
 
+void setup_bias()
+{
+    set_bias_pwm(get_start_bias());
+}
+
 void inc_bias_pwm()
 {
-    if (g_bias_pwm < MAX_BIAS_PWM)
+    if ((g_bias_pwm < MAX_BIAS_PWM) && IS_UZG_RUN)
     {
         g_bias_pwm++;
         set_bias_pwm(g_bias_pwm);
@@ -91,7 +101,7 @@ void inc_bias_pwm()
 
 void dec_bias_pwm()
 {
-    if (g_bias_pwm > MIN_BIAS_PWM)
+    if ((g_bias_pwm > MIN_BIAS_PWM) && IS_UZG_RUN)
     {
         g_bias_pwm--;
         if (g_bias_pwm)
@@ -104,23 +114,6 @@ void dec_bias_pwm()
 double bias_pwm_to_current(uint8_t pwm)
 {
 	return pwm * (g_bias_pwm_multiplier / 100.) / 255;
-}
-
-uint8_t get_start_bias()
-{
-    return g_start_bias;
-}
-
-void inc_start_bias()
-{
-    if (g_start_bias < MAX_START_BIAS)
-        g_start_bias++;
-}
-
-void dec_start_bias()
-{
-    if (g_start_bias > MIN_START_BIAS)
-        g_start_bias--;
 }
 
 double adc_value_to_bias(int16_t adc)
@@ -137,28 +130,47 @@ double get_bias_adc()
     return value;
 }
 
+
+uint8_t get_start_bias()
+{
+    return g_start_bias;
+}
+
+void inc_start_bias()
+{
+    if (g_start_bias < MAX_BIAS_PWM)
+        g_start_bias++;
+}
+
+void dec_start_bias()
+{
+    if (g_start_bias > MIN_BIAS_PWM)
+        g_start_bias--;
+}
+
 void validate_start_bias()
 {
-    if (g_start_bias > MAX_START_BIAS)
-        g_start_bias = MAX_START_BIAS;
+    if (g_start_bias > MAX_BIAS_PWM)
+        g_start_bias = MAX_BIAS_PWM;
 
-    if (g_start_bias < MIN_START_BIAS)
-        g_start_bias = MIN_START_BIAS;
+    if (g_start_bias < MIN_BIAS_PWM)
+        g_start_bias = MIN_BIAS_PWM;
 }
 
 void set_start_bias(uint8_t start_bias)
 {
-    if (start_bias > MAX_START_BIAS)
-        start_bias = MAX_START_BIAS;
+    if (start_bias > MAX_BIAS_PWM)
+        start_bias = MAX_BIAS_PWM;
 
-    if (start_bias < MIN_START_BIAS)
-        start_bias = MIN_START_BIAS;
+    if (start_bias < MIN_BIAS_PWM)
+        start_bias = MIN_BIAS_PWM;
 
     g_start_bias = start_bias;
 }
 
-void setup_bias()
+void reset_start_bias()
 {
-    set_bias_pwm(g_start_bias);
+    set_start_bias(DEFAULT_BIAS);
 }
+
 

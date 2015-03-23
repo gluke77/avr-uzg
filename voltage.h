@@ -3,12 +3,10 @@
 
 #include "common.h"
 
-#define MAX_VOLTAGE_PWM	    (150)
-#define MIN_VOLTAGE_PWM	    (110)   
-#define DEFAULT_VOLTAGE_PWM (120)
+#define MAX_VOLTAGE_PWM	    (130)
+#define MIN_VOLTAGE_PWM	    (90)   
+#define DEFAULT_VOLTAGE_PWM (100)
 #define VOLTAGE_BIAS        (20)
-
-extern uint8_t  g_voltage_pwm;
 
 void voltage_pwm_init(void);
 

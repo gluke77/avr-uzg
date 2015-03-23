@@ -4,14 +4,11 @@
 #include "common.h"
 
 uint8_t		g_power_pwm;
-uint8_t		g_power_pwm_step = 1;
-uint8_t		g_power_pwm_base;
-uint8_t		g_power_pwm_shift;
-uint8_t		g_max_power_pwm = POWER_PWM_MAX;
-uint8_t		g_min_power_pwm = POWER_PWM_MIN;
+uint8_t		g_start_power;
 
 void set_power_on(void)
 {
+    set_power_pwm(get_start_power());
 	TCCR3A |= _BV(COM3B0) | _BV(COM3B1);
 }
 
@@ -19,6 +16,10 @@ void set_power_off(void)
 {
 	TCCR3A &= ~(_BV(COM3B0) | _BV(COM3B1));
 	SETBIT(PORTE, PE4);
+	cli();
+	OCR3B = (uint16_t)0;
+	sei();
+    g_power_pwm = POWER_BIAS;
 }
 
 uint8_t is_power_on(void)
@@ -71,14 +72,84 @@ void power_pwm_init(void)
 
 void set_power_pwm(uint8_t byte)
 {
-	if (g_max_power_pwm < byte)
-		byte = g_max_power_pwm;
+	if (byte > MAX_POWER_PWM)
+        byte = MAX_POWER_PWM;
+
+    if (byte < MIN_POWER_PWM)
+        byte = MIN_POWER_PWM;
 		
-	if (byte < g_min_power_pwm)
-		byte = g_min_power_pwm;
-		
+    byte += POWER_BIAS;
+
 	cli();
 	OCR3B = (uint16_t)byte;
 	sei();
 	g_power_pwm = byte;
+}
+
+uint8_t get_power_pwm()
+{
+    return g_power_pwm - POWER_BIAS;
+}
+
+void inc_power_pwm()
+{
+    uint8_t pwm = get_power_pwm();
+    if ((pwm < MAX_POWER_PWM) && IS_UZG_RUN)
+    {
+        pwm++;
+        set_power_pwm(pwm);
+    }
+}
+
+void dec_power_pwm()
+{
+    uint8_t pwm = get_power_pwm();
+    if ((pwm > MIN_POWER_PWM) && IS_UZG_RUN)
+    {
+        pwm--;
+        set_power_pwm(pwm);
+    }
+}
+
+uint8_t get_start_power()
+{
+    return g_start_power;
+}
+
+void set_start_power(uint8_t byte)
+{
+
+	if (byte > MAX_POWER_PWM)
+        byte = MAX_POWER_PWM;
+
+    if (byte < MIN_POWER_PWM)
+        byte = MIN_POWER_PWM;
+	
+	g_start_power = byte;
+}
+
+void inc_start_power()
+{
+    if (g_start_power < MAX_POWER_PWM)
+        g_start_power++;
+}
+
+void dec_start_power()
+{
+    if (g_start_power > MIN_POWER_PWM)
+        g_start_power--;
+}
+
+void validate_start_power()
+{
+	if (g_start_power > MAX_POWER_PWM)
+        g_start_power = MAX_POWER_PWM;
+
+    if (g_start_power < MIN_POWER_PWM)
+        g_start_power = MIN_POWER_PWM;
+}
+
+void reset_start_power()
+{
+    g_start_power = DEFAULT_POWER_PWM;
 }

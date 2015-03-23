@@ -88,7 +88,7 @@ typedef enum
 {
 	KEEP_OFF = 1,
 	KEEP_CURRENT,
-	KEEP_AMP,
+//	KEEP_AMP,
 	KEEP_COUNT
 } keep_mode_e;
 
@@ -214,7 +214,7 @@ extern	char	g_din[DIN_SIZE];
 #define MAX_VOLTAGE_PWM_ADDR    (85)
 // next addr 86
 
-#undef _NARROW_FREQ
+#define _NARROW_FREQ
 #define _INT_TIMEOUT_CHANGEABLE
 #undef _SUPERMAX_BIAS_CHANGEABLE
 #define _POWER_CHANGEABLE

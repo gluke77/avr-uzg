@@ -50,14 +50,14 @@ void voltage_pwm_init(void)
 
 void set_voltage_pwm(uint8_t byte)
 {
-    byte += VOLTAGE_BIAS;
-
 	if (byte > MAX_VOLTAGE_PWM)
         byte = MAX_VOLTAGE_PWM;
 
     if (byte < MIN_VOLTAGE_PWM)
         byte = MIN_VOLTAGE_PWM;
 	
+    byte += VOLTAGE_BIAS;
+    
     OCR2 = byte;
 	g_voltage_pwm = byte;
 }
@@ -69,31 +69,31 @@ uint8_t get_voltage_pwm()
 
 void inc_voltage_pwm()
 {
-    if (g_voltage_pwm < MAX_VOLTAGE_PWM)
+    uint8_t pwm = get_voltage_pwm();
+    if (pwm < MAX_VOLTAGE_PWM)
     {
-        g_voltage_pwm++;
-        set_voltage_pwm(g_voltage_pwm);
+        pwm++;
+        set_voltage_pwm(pwm);
     }
 }
 
 void dec_voltage_pwm()
 {
-    if (g_voltage_pwm > MIN_VOLTAGE_PWM)
+    uint8_t pwm = get_voltage_pwm();
+    if (pwm > MIN_VOLTAGE_PWM)
     {
-        g_voltage_pwm--;
-        set_voltage_pwm(g_voltage_pwm);
+        pwm--;
+        set_voltage_pwm(pwm);
     }
 }
 
 uint8_t get_start_voltage()
 {
-    return g_start_voltage - VOLTAGE_BIAS;
+    return g_start_voltage;
 }
 
 void set_start_voltage(uint8_t byte)
 {
-    byte += VOLTAGE_BIAS;
-
 	if (byte > MAX_VOLTAGE_PWM)
         byte = MAX_VOLTAGE_PWM;
 

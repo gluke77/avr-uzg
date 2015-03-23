@@ -101,8 +101,6 @@ int main(void)
 	usart1_init(USART_RS485_SLAVE, g_baudrate);
 	usart1_setprotocol_modbus();
 
-	set_power_pwm(g_power_pwm_base);
-
 	stop(STOP_BUTTON);
 	sei();
 
@@ -198,9 +196,9 @@ void do_usart(void)
 								keep_start();
 							break;
 						case 0x0030:
-							g_keep_mode = KEEP_AMP;
-							if (IS_UZG_RUN)
-								keep_start();
+    						//g_keep_mode = KEEP_AMP;
+							//if (IS_UZG_RUN)
+							//	keep_start();
 							break;
 						default:
 							break;
@@ -285,25 +283,12 @@ void do_usart(void)
 
 #ifdef _POWER_CHANGEABLE
 					case 0x000D:	// set power pwm
-						if (value < g_min_power_pwm)
-							value = g_min_power_pwm;
-						if (value > g_max_power_pwm)
-							value = g_max_power_pwm;
 						set_power_pwm((uint8_t)value);
 						break;
 					case 0x000E:	// set power pwm base
-						g_power_pwm_base = (uint8_t)value;
-						if (g_max_power_pwm - g_power_pwm_shift < g_power_pwm_base)
-							g_power_pwm_base = g_max_power_pwm - g_power_pwm_shift;
-						if (g_power_pwm_base < g_min_power_pwm)
-							g_power_pwm_base = g_min_power_pwm;
+						set_start_power((uint8_t)value);
 						break;
 					case 0x000F:	// set power pwm shift
-						g_power_pwm_shift = (uint8_t)value;
-						if (g_max_power_pwm - g_power_pwm_shift < g_power_pwm_base)
-							g_power_pwm_shift = g_max_power_pwm - g_power_pwm_base;
-						if (g_power_pwm_shift < 0)
-							g_power_pwm_shift = 0;
 						break;
 #endif // _POWER_CHANGEABLE
 						case 0x0010:
@@ -323,7 +308,7 @@ void do_usart(void)
 					case 0x0012:
 						g_adc_bias_multiplier = (uint8_t)value;
 						if (10 > g_adc_bias_multiplier || g_adc_bias_multiplier > 60)
-							g_adc_bias_multiplier = 29;
+							g_adc_bias_multiplier = 30;
 						eeprom_write_byte(ADC_BIAS_MULTIPLIER_ADDR, g_adc_bias_multiplier);
 						break;
 					case 0x0013:
@@ -475,8 +460,8 @@ void do_usart(void)
 					cmd.value[0] |= (uint16_t)g_autosearch_running << 6;
 
 					cmd.value[1] = (uint16_t)g_dds_freq;
-					cmd.value[2] = (uint16_t)g_bias_pwm;
-					cmd.value[3] = (uint16_t)g_power_pwm;
+					cmd.value[2] = (uint16_t)get_bias_pwm();
+					cmd.value[3] = (uint16_t)get_power_pwm();
 					cmd.value[4] = (int16_t)(((temp_value(0)>temp_value(1))?temp_value(0):temp_value(1)) * 10);
 					cmd.value[5] = (uint16_t)adc_mean_value(ADC_BIAS_CURRENT);
 					cmd.value[6] = (uint16_t)adc_mean_value(ADC_FEEDBACK_CURRENT);
@@ -489,7 +474,7 @@ void do_usart(void)
 					
 					cmd.value[0] = (uint16_t)g_freq_upper;
 					cmd.value[1] = (uint16_t)g_freq_lower;
-					cmd.value[2] = (uint16_t)g_start_bias;
+					cmd.value[2] = (uint16_t)get_start_bias();
 					cmd.value[3] = 0;//was g_bias_pwm_shift;
 					cmd.value[4] = 0;//was g_max_bias_pwm;
 					cmd.value[5] = 0;//was g_min_bias_pwm;
@@ -497,8 +482,8 @@ void do_usart(void)
 					cmd.value[7] = (uint16_t)g_keep_freq_max_delta;
 					cmd.value[8] = (uint16_t)g_temp_stop;
 					cmd.value[9] = (uint16_t)g_temp_alarm;
-					cmd.value[10] = (uint16_t)g_power_pwm_base;
-					cmd.value[11] = (uint16_t)g_power_pwm_shift;
+					cmd.value[10] = (uint16_t)get_start_power();
+					cmd.value[11] = 0; //(uint16_t)g_power_pwm_shift;
 				}
 				else if (0x0002 == cmd.addr)
 				{
@@ -596,8 +581,6 @@ void uzg_run(void)
 {
 	dds_setfreq(g_dds_freq);
 	set_power_on();
-	set_power_pwm(g_power_pwm_base);
-	
     set_voltage_on();
 }
 
@@ -843,12 +826,12 @@ void do_keep_resonance(void)
 				keep_value = g_keep_amp;
 			}
 		
-			if ((new_value < keep_value) && (g_voltage_pwm < MAX_VOLTAGE_PWM))
+			if ((new_value < keep_value) && (get_voltage_pwm() < MAX_VOLTAGE_PWM))
 			{
 				inc_voltage_pwm();
 				timer_id = start_timer(g_int_timeout + adc_get_timeout(ADC_FEEDBACK_CURRENT) + adc_get_timeout(ADC_AMP));
 			}
-			else if ((new_value > keep_value) && (g_voltage_pwm > MIN_VOLTAGE_PWM))
+			else if ((new_value > keep_value) && (get_voltage_pwm() > MIN_VOLTAGE_PWM))
 			{
 				dec_voltage_pwm();
 				timer_id = start_timer(g_int_timeout + adc_get_timeout(ADC_FEEDBACK_CURRENT) + adc_get_timeout(ADC_AMP));
