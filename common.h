@@ -9,7 +9,7 @@
 #include <inttypes.h>
 #include <util/delay.h>
 
-#define FW_VERSION	("20150323-1")
+#define FW_VERSION	("20150324")
 
 #define TRUE 1
 #define FALSE 0
@@ -157,7 +157,7 @@ extern	char	g_din[DIN_SIZE];
 #define FREQ_UPPER_ADDR	(0)
 #define FREQ_LOWER_ADDR	(2)
 #define FREQ_ADDR		(4)
-#define PWM_SHIFT_ADDR	(6)
+//#define PWM_SHIFT_ADDR	(6)
 #define	PWM_BASE_ADDR	(8)
 
 #define ADC0_DELAY_ADDR	(9)
@@ -182,16 +182,16 @@ extern	char	g_din[DIN_SIZE];
 #define TEMP_ALARM_ADDR	(34)
 #define TEMP_STOP_ADDR	(36)
 
-#define POWER_PWM_SHIFT_ADDR		(38)
+//#define POWER_PWM_SHIFT_ADDR		(38)
 #define POWER_PWM_BASE_ADDR			(39)
-#define MAX_POWER_PWM_ADDR			(40)
-#define MIN_POWER_PWM_ADDR			(41)
+//#define MAX_POWER_PWM_ADDR			(40)
+//#define MIN_POWER_PWM_ADDR			(41)
 #define AUTOSEARCH_MODE_ADDR		(42)
 #define FAULT_INTERRUPTS_MODE_ADDR	(43)
-#define BIAS_PWM_MULTIPLIER_ADDR	(44)
-#define ADC_MULTIPLIER_ADDR			(46)
+//#define BIAS_PWM_MULTIPLIER_ADDR	(44)
+//#define ADC_MULTIPLIER_ADDR			(46)
 #define DIN_ADDR					(47)
-#define SUPERMAX_BIAS_PWM_ADDR		(63)
+//#define SUPERMAX_BIAS_PWM_ADDR		(63)
 
 #define ADC0_BIAS_ADDR				(64)
 #define ADC1_BIAS_ADDR				(66)
@@ -201,8 +201,8 @@ extern	char	g_din[DIN_SIZE];
 #define ADC_BIAS_MULTIPLIER_ADDR		(72)
 #define ADC_FEEDBACK_MULTIPLIER_ADDR	(73)
 
-#define SUPERMAX_FREQ_ADDR			(74)
-#define SUPERMIN_FREQ_ADDR			(76)
+//#define SUPERMAX_FREQ_ADDR			(74)
+//#define SUPERMIN_FREQ_ADDR			(76)
 
 #define TEMP2_ALARM_ADDR	(78)
 #define TEMP2_STOP_ADDR	(80)
@@ -212,11 +212,11 @@ extern	char	g_din[DIN_SIZE];
 #define VOLTAGE_PWM_BASE_ADDR   (83)
 #define MIN_VOLTAGE_PWM_ADDR    (84)
 #define MAX_VOLTAGE_PWM_ADDR    (85)
-// next addr 86
+#define DEFAULT_VOLTAGE_ADDR    (86)
+// next addr 87
 
 #define _NARROW_FREQ
 #define _INT_TIMEOUT_CHANGEABLE
-#undef _SUPERMAX_BIAS_CHANGEABLE
 #define _POWER_CHANGEABLE
 #define _KEEP_CHANGEABLE
 #define _ADC_SHOW
@@ -228,10 +228,6 @@ extern	char	g_din[DIN_SIZE];
 
 #define DEFAULT_INT_TIMEOUT			(100)
 
-#define DEFAULT_PFC_MODE			(PFC_ON)
-
-#define MIN_BIAS_PWM_MULTIPLIER		(700)
-#define MAX_BIAS_PWM_MULTIPLIER		(1500)
-#define DEFAULT_BIAS_PWM_MULTIPLIER	(950)
+#define DEFAULT_PFC_MODE			(PFC_AUTO)
 
 #endif /* __COMMON_H_INCLUDED_*/

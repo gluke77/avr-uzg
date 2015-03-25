@@ -8,15 +8,14 @@
 
 #define DEFAULT_BIAS (100)
 
-extern uint16_t		g_bias_pwm_multiplier;
 extern uint8_t		g_adc_bias_multiplier;
 
 void bias_pwm_init(void);
 void setup_bias(void);
 void stop_bias(void);
-double bias_pwm_to_current(uint8_t);
 
 uint8_t get_bias_pwm(void);
+void set_bias_pwm(uint8_t);
 void inc_bias_pwm(void);
 void dec_bias_pwm(void);
 

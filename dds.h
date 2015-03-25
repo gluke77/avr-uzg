@@ -40,9 +40,6 @@ void dds_init(void);
 void dds_setmultiplier(uint32_t);
 void dds_setfreq(uint32_t);
 
-extern 	uint32_t	g_freq_supermax;
-extern	uint32_t	g_freq_supermin;
-
 extern	uint32_t	g_freq_upper;
 extern	uint32_t	g_freq_lower;
 

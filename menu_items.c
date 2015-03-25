@@ -62,7 +62,7 @@ void menu_items_init(void)
 #ifdef _ADC_SHOW
 	menu_items[MENU_MODE_WORK][idx++] = menu_adc0;
 	menu_items[MENU_MODE_WORK][idx++] = menu_adc1;
-	menu_items[MENU_MODE_WORK][idx++] = menu_adc2;
+//  menu_items[MENU_MODE_WORK][idx++] = menu_adc2;
 //	menu_items[MENU_MODE_WORK][idx++] = menu_adc3;
 #endif // _ADC_SHOW
 
@@ -601,8 +601,8 @@ void menu_freq_lower(void)
 		else
 			g_freq_lower--;
 
-		if (g_freq_supermin > g_freq_lower)
-			g_freq_lower = g_freq_supermin;
+		if (DDS_MIN_FREQ > g_freq_lower)
+			g_freq_lower = DDS_MIN_FREQ;
 			
 		CLEAR_KEY_PRESSED(KEY_LEFT);
 	}
@@ -672,8 +672,8 @@ void menu_freq_upper(void)
 		else
 			g_freq_upper++;
 
-		if (g_freq_supermax < g_freq_upper)
-			g_freq_upper = g_freq_supermax;
+		if (DDS_MAX_FREQ < g_freq_upper)
+			g_freq_upper = DDS_MAX_FREQ;
 						
 		CLEAR_KEY_PRESSED(KEY_RIGHT);
 	}
@@ -895,9 +895,6 @@ void loadFromEE(void)
 {
 	int i;
 
-	g_freq_supermax = eeprom_read_word(SUPERMAX_FREQ_ADDR);
-	g_freq_supermin = eeprom_read_word(SUPERMIN_FREQ_ADDR);
-	
 	g_freq_upper = (uint32_t)eeprom_read_word(FREQ_UPPER_ADDR);
 	g_freq_lower = (uint32_t)eeprom_read_word(FREQ_LOWER_ADDR);
 	g_dds_freq = (uint32_t)eeprom_read_word(FREQ_ADDR);
@@ -928,16 +925,13 @@ void loadFromEE(void)
 	g_autosearch_mode = eeprom_read_byte(AUTOSEARCH_MODE_ADDR);
 	fault_interrupts_init(eeprom_read_byte(FAULT_INTERRUPTS_MODE_ADDR));
 
-	g_bias_pwm_multiplier = eeprom_read_word(BIAS_PWM_MULTIPLIER_ADDR);
-	//g_adc_multiplier = eeprom_read_byte(ADC_MULTIPLIER_ADDR);
-	
 	for (i = 0; i < DIN_SIZE; i++)
 		g_din[i] = eeprom_read_byte(DIN_ADDR + i);
 	g_din[DIN_SIZE - 1] = 0;
 	
-	adc[0].bias = eeprom_read_word(ADC0_BIAS_ADDR);
-	adc[1].bias = eeprom_read_word(ADC1_BIAS_ADDR);
-	adc[2].bias = eeprom_read_word(ADC2_BIAS_ADDR);
+	adc[ADC_BIAS_CURRENT].bias = eeprom_read_word(ADC0_BIAS_ADDR);
+	adc[ADC_FEEDBACK_CURRENT].bias = eeprom_read_word(ADC1_BIAS_ADDR);
+	adc[ADC_AMP].bias = eeprom_read_word(ADC2_BIAS_ADDR);
 //	adc[3].bias = eeprom_read_word(ADC3_BIAS_ADDR);
 	
 	g_adc_bias_multiplier = eeprom_read_byte(ADC_BIAS_MULTIPLIER_ADDR);
@@ -948,6 +942,7 @@ void loadFromEE(void)
 	g_fault_interrupts_mode = eeprom_read_byte(FAULT_INTERRUPTS_MODE_ADDR);
 
     set_start_voltage(eeprom_read_byte(VOLTAGE_PWM_BASE_ADDR));
+    set_default_real_voltage(eeprom_read_byte(DEFAULT_VOLTAGE_ADDR));
 }
 
 void storeToEE(void)
@@ -978,29 +973,15 @@ void storeToEE(void)
 	
 	eeprom_write_byte(STARTBUTTON_MODE_ADDR, g_startbutton_mode);
 	
-//	eeprom_write_word(BIAS_PWM_MULTIPLIER_ADDR, g_bias_pwm_multiplier);
-//	eeprom_write_byte(ADC_MULTIPLIER_ADDR, g_adc_multiplier);
     eeprom_write_byte(VOLTAGE_PWM_BASE_ADDR, get_start_voltage());
+    eeprom_write_byte(DEFAULT_VOLTAGE_ADDR, get_default_real_voltage());
 }
 
 void reset_settings(void)
 {
 
-	g_freq_upper = g_freq_supermax;
-
-	if (g_freq_upper > g_freq_supermax)
-		g_freq_upper = g_freq_supermax;
-		
-	if (g_freq_upper < g_freq_supermin)
-		g_freq_upper = g_freq_supermin;
-		
-	g_freq_lower = g_freq_supermin;
-
-	if (g_freq_lower < g_freq_supermin)
-		g_freq_lower = g_freq_supermin;
-		
-	if (g_freq_lower > g_freq_upper)
-		g_freq_lower = g_freq_supermin;
+	g_freq_upper = DDS_MAX_FREQ;
+	g_freq_lower = DDS_MIN_FREQ;
 
 	dds_setfreq((g_freq_upper + g_freq_lower) / 2);
 
@@ -1039,16 +1020,11 @@ void reset_settings(void)
 	g_startbutton_mode = STARTBUTTON_OFF;
 #endif //_STARTBUTTON_ENABLED
     reset_start_voltage();
+    reset_default_real_voltage();
 }
 
 void check_settings(void)
 {
-	if (MIN_BIAS_PWM_MULTIPLIER > g_bias_pwm_multiplier || g_bias_pwm_multiplier > MAX_BIAS_PWM_MULTIPLIER)
-	{	
-		g_bias_pwm_multiplier = DEFAULT_BIAS_PWM_MULTIPLIER;
-		eeprom_write_word(BIAS_PWM_MULTIPLIER_ADDR, g_bias_pwm_multiplier);
-	}
-	
 	if (10 > g_adc_bias_multiplier || g_adc_bias_multiplier > 60)
 	{
 		g_adc_bias_multiplier = 55;
@@ -1061,51 +1037,35 @@ void check_settings(void)
 		eeprom_write_byte(ADC_FEEDBACK_MULTIPLIER_ADDR, g_adc_feedback_multiplier);
 	}
 
-	if (adc[0].bias > 1000 || adc[0].bias < 0)
+	if (adc[ADC_BIAS_CURRENT].bias > 1000 || adc[ADC_BIAS_CURRENT].bias < 0)
 	{
-		adc[0].bias = 511;
-		eeprom_write_word(ADC0_BIAS_ADDR, adc[0].bias);
+		adc[ADC_BIAS_CURRENT].bias = 511;
+		eeprom_write_word(ADC0_BIAS_ADDR, adc[ADC_BIAS_CURRENT].bias);
 	}
 
-	if (adc[1].bias > 520 || adc[1].bias < 500)
+	if (adc[ADC_FEEDBACK_CURRENT].bias > 520 || adc[ADC_FEEDBACK_CURRENT].bias < 500)
 	{
-		adc[1].bias = 511;
-		eeprom_write_word(ADC1_BIAS_ADDR, adc[1].bias);
+		adc[ADC_FEEDBACK_CURRENT].bias = 511;
+		eeprom_write_word(ADC1_BIAS_ADDR, adc[ADC_FEEDBACK_CURRENT].bias);
 	}
 
-	if (adc[2].bias > 520 || adc[2].bias < 500)
+	if (adc[ADC_AMP].bias > 520 || adc[ADC_AMP].bias < 500)
 	{
-		adc[2].bias = 511;
-		eeprom_write_word(ADC2_BIAS_ADDR, adc[2].bias);
+		adc[ADC_AMP].bias = 511;
+		eeprom_write_word(ADC2_BIAS_ADDR, adc[ADC_AMP].bias);
 	}
 	
-	if (DDS_MAX_FREQ < g_freq_supermax || DDS_MIN_FREQ > g_freq_supermax)
-	{
-		g_freq_supermax = DDS_MAX_FREQ;
-		eeprom_write_word(SUPERMAX_FREQ_ADDR, (uint16_t)g_freq_supermax);
-	}
-
-	if (g_freq_supermin > g_freq_supermax || DDS_MIN_FREQ > g_freq_supermin)
-	{
-		g_freq_supermin = DDS_MIN_FREQ;
-		eeprom_write_word(SUPERMIN_FREQ_ADDR, (uint16_t)g_freq_supermin);
-	}
-#ifdef _NARROW_FREQ
-	g_freq_supermax = DDS_MAX_FREQ;
-	g_freq_supermin = DDS_MIN_FREQ; 
-#endif // _NARROW_FREQ
-	
-	if (g_freq_upper > g_freq_supermax)
-		g_freq_upper = g_freq_supermax;
+	if (g_freq_upper > DDS_MAX_FREQ)
+		g_freq_upper = DDS_MAX_FREQ;
 		
-	if (g_freq_upper < g_freq_supermin)
-		g_freq_upper = g_freq_supermin;
+	if (g_freq_upper < DDS_MIN_FREQ)
+		g_freq_upper = DDS_MIN_FREQ;
 		
-	if (g_freq_lower < g_freq_supermin)
-		g_freq_lower = g_freq_supermin;
+	if (g_freq_lower < DDS_MIN_FREQ)
+		g_freq_lower = DDS_MIN_FREQ;
 		
 	if (g_freq_lower > g_freq_upper)
-		g_freq_lower = g_freq_supermin;
+		g_freq_lower = DDS_MIN_FREQ;
 
 	if (g_dds_freq > g_freq_upper || g_dds_freq < g_freq_lower)
 		dds_setfreq((g_freq_upper + g_freq_lower) / 2);
@@ -1170,9 +1130,8 @@ void check_settings(void)
 	g_startbutton_mode = STARTBUTTON_OFF;
 #endif // ! _STARTBUTTON_ENABLED
 		
-#ifdef _VOLTAGE_CHANGEABLE
     validate_start_voltage();
-#endif // _VOLTAGE_CHANGEABLE
+    validate_default_real_voltage();
 }
 
 void menu_int_timeout(void)

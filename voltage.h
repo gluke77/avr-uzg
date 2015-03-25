@@ -3,10 +3,13 @@
 
 #include "common.h"
 
-#define MAX_VOLTAGE_PWM	    (130)
-#define MIN_VOLTAGE_PWM	    (90)   
-#define DEFAULT_VOLTAGE_PWM (100)
-#define VOLTAGE_BIAS        (20)
+#define MAX_VOLTAGE	    (130)
+#define MIN_VOLTAGE	    (90)   
+#define DEFAULT_VOLTAGE (100)
+
+#define MAX_REAL_VOLTAGE	    (200)
+#define MIN_REAL_VOLTAGE        (50)   
+#define DEFAULT_REAL_VOLTAGE    (120)
 
 void voltage_pwm_init(void);
 
@@ -25,5 +28,10 @@ void inc_start_voltage(void);
 void dec_start_voltage(void);
 void validate_start_voltage(void);
 void reset_start_voltage(void);
+
+void set_default_real_voltage(uint8_t);
+uint8_t get_default_real_voltage(void);
+void validate_default_real_voltage(void);
+void reset_default_real_voltage(void);
 
 #endif /* _VOLTAGE_INCLUDED */

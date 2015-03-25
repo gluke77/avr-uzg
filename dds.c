@@ -3,9 +3,6 @@
 #include "dds.h"
 //#include "spi.h"
 
-uint32_t	g_freq_supermax;
-uint32_t	g_freq_supermin;
-
 uint32_t	g_freq_upper;
 uint32_t	g_freq_lower;
 
@@ -91,18 +88,12 @@ void dds_setfreq(uint32_t freq)
 	if (g_freq_lower > freq)
 		freq = g_freq_lower;
 	
-	if (g_freq_supermin > freq)
-		freq = g_freq_supermin;
-	
 	if (DDS_MIN_FREQ > freq)
 		freq = DDS_MIN_FREQ;
 
 	if (g_freq_upper < freq)
 		freq = g_freq_upper;
 		
-	if (g_freq_supermax < freq)
-		freq = g_freq_supermax;
-	
 	if (DDS_MAX_FREQ < freq)
 		freq = DDS_MAX_FREQ;
 		

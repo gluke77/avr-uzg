@@ -42,7 +42,7 @@ extern uint8_t		g_autosearch_running;
 extern uint8_t		g_menu_search_auto_idx;
 extern uint16_t	g_int_timeout;
 
-#define DELTA_ZERO_COUNT	(1)
+#define DELTA_ZERO_COUNT	(0)
 
 char	buf[50];
 
@@ -182,8 +182,8 @@ void do_usart(void)
 							break;
 						}
 							
-						if (value & 0x000C)
-							set_pfc_mode((value & 0x000C) >> 2);
+					//	if (value & 0x000C)
+					//		set_pfc_mode((value & 0x000C) >> 2);
 						
 						switch (value & 0x0030)
 						{
@@ -213,14 +213,12 @@ void do_usart(void)
 						dds_setfreq((uint32_t)value);
 						break;
 					case 0x0002:	// set current pwm
-						set_start_bias(value);
+						set_bias_pwm((uint8_t)value);
 						break;
 					case 0x0003:	// set upper freq
 						g_freq_upper = (uint32_t)value;
 						if (g_freq_lower > g_freq_upper)
 							g_freq_upper = g_freq_lower;
-						if (g_freq_supermax < g_freq_upper)
-							g_freq_upper = g_freq_supermax;
 						if (DDS_MAX_FREQ < g_freq_upper)
 							g_freq_upper = DDS_MAX_FREQ;
 						if (g_dds_freq > g_freq_upper)
@@ -230,15 +228,14 @@ void do_usart(void)
 						g_freq_lower = (uint32_t)value;
 						if (g_freq_lower > g_freq_upper)
 							g_freq_lower = g_freq_upper;
-						if (g_freq_supermin > g_freq_lower)
-							g_freq_lower = g_freq_supermin;
 						if (DDS_MIN_FREQ > g_freq_lower)
 							g_freq_lower = DDS_MIN_FREQ;
 						if (g_freq_lower > g_dds_freq)
 							dds_setfreq(g_freq_lower);
 						break;
 					case 0x0005:	// set current pwm base
-						break;
+						set_start_bias((uint8_t)value);
+                        break;
 					case 0x0006:	// set current pwm shift
 						break;
 					case 0x0007:	// set max current pwm
@@ -291,20 +288,12 @@ void do_usart(void)
 					case 0x000F:	// set power pwm shift
 						break;
 #endif // _POWER_CHANGEABLE
-						case 0x0010:
-						g_bias_pwm_multiplier = (uint16_t)value;
-						if (MIN_BIAS_PWM_MULTIPLIER > g_bias_pwm_multiplier || g_bias_pwm_multiplier > MAX_BIAS_PWM_MULTIPLIER)
-							g_bias_pwm_multiplier = DEFAULT_BIAS_PWM_MULTIPLIER;
-						eeprom_write_word(BIAS_PWM_MULTIPLIER_ADDR, g_bias_pwm_multiplier);
+					case 0x0010:
+						set_start_voltage((uint8_t)value);
 						break;
-#ifdef _SUPERMAX_BIAS_CHANGEABLE
 					case 0x0011:
-						g_supermax_bias_pwm = (uint8_t)value;
-						if (g_supermax_bias_pwm > SUPERMAX_BIAS_PWM)
-							g_supermax_bias_pwm = SUPERMAX_BIAS_PWM;
-						eeprom_write_byte(SUPERMAX_BIAS_PWM_ADDR, g_supermax_bias_pwm);
+						//g_supermax_bias_pwm = (uint8_t)value;
 						break;
-#endif // _SUPERMAX_BIAS_CHANGEABLE
 					case 0x0012:
 						g_adc_bias_multiplier = (uint8_t)value;
 						if (10 > g_adc_bias_multiplier || g_adc_bias_multiplier > 60)
@@ -319,40 +308,30 @@ void do_usart(void)
 						break;
 
 					case 0x0014:
-						g_freq_supermax = (uint32_t)value;
-						if (DDS_MAX_FREQ < g_freq_supermax)
-							g_freq_supermax = DDS_MAX_FREQ;
-						if (g_freq_supermax < g_freq_upper)
-							g_freq_supermax = g_freq_upper;
-						eeprom_write_word(SUPERMAX_FREQ_ADDR, (uint16_t)g_freq_supermax);
+						//g_freq_supermax = (uint32_t)value;
 						break;
 					case 0x0015:
-						g_freq_supermin = (uint32_t)value;
-						if (DDS_MIN_FREQ > g_freq_supermin)
-							g_freq_supermin = DDS_MIN_FREQ;
-						if (g_freq_supermin > g_freq_lower)
-							g_freq_supermin = g_freq_lower;
-						eeprom_write_word(SUPERMIN_FREQ_ADDR, (uint16_t)g_freq_supermin);
+						//g_freq_supermin = (uint32_t)value;
 						break;
 						
 						
 					case 0x001C:
-						adc[0].bias = (int16_t)value;
-						if (adc[0].bias > 1000 || adc[0].bias < 0)
-							adc[0].bias = 511;
-						eeprom_write_word(ADC0_BIAS_ADDR, adc[0].bias);
+						adc[ADC_BIAS_CURRENT].bias = (int16_t)value;
+						if (adc[ADC_BIAS_CURRENT].bias > 1000 || adc[ADC_BIAS_CURRENT].bias < 0)
+							adc[ADC_BIAS_CURRENT].bias = 511;
+						eeprom_write_word(ADC0_BIAS_ADDR, adc[ADC_BIAS_CURRENT].bias);
 						break;
 					case 0x001D:
-						adc[1].bias = (int16_t)value;
-						if (adc[1].bias > 520 || adc[1].bias < 500)
-							adc[1].bias = 511;
-						eeprom_write_word(ADC1_BIAS_ADDR, adc[1].bias);
+						adc[ADC_FEEDBACK_CURRENT].bias = (int16_t)value;
+						if (adc[ADC_FEEDBACK_CURRENT].bias > 520 || adc[ADC_FEEDBACK_CURRENT].bias < 500)
+							adc[ADC_FEEDBACK_CURRENT].bias = 511;
+						eeprom_write_word(ADC1_BIAS_ADDR, adc[ADC_FEEDBACK_CURRENT].bias);
 						break;
 					case 0x001E:
-						adc[2].bias = (int16_t)value;
-						if (adc[2].bias > 520 || adc[2].bias < 500)
-							adc[2].bias = 511;
-						eeprom_write_word(ADC2_BIAS_ADDR, adc[2].bias);
+						adc[ADC_AMP].bias = (int16_t)value;
+						if (adc[ADC_AMP].bias > 520 || adc[ADC_AMP].bias < 500)
+							adc[ADC_AMP].bias = 511;
+						eeprom_write_word(ADC2_BIAS_ADDR, adc[ADC_AMP].bias);
 						break;
 /*					case 0x001F:
 						adc[3].bias = (int16_t)value;
@@ -424,6 +403,11 @@ void do_usart(void)
 						eeprom_write_byte(DIN_ADDR + 15, g_din[15]);
 						break;
 
+                    case 0x0030:
+                        set_default_real_voltage((uint8_t)value);
+                        eeprom_write_byte(DEFAULT_VOLTAGE_ADDR, get_default_real_voltage());
+                        break;
+
 					case 0xFFFF:
 						check_settings();
 						storeToEE();
@@ -462,10 +446,10 @@ void do_usart(void)
 					cmd.value[1] = (uint16_t)g_dds_freq;
 					cmd.value[2] = (uint16_t)get_bias_pwm();
 					cmd.value[3] = (uint16_t)get_power_pwm();
-					cmd.value[4] = (int16_t)(((temp_value(0)>temp_value(1))?temp_value(0):temp_value(1)) * 10);
-					cmd.value[5] = (uint16_t)adc_mean_value(ADC_BIAS_CURRENT);
-					cmd.value[6] = (uint16_t)adc_mean_value(ADC_FEEDBACK_CURRENT);
-					cmd.value[7] = (uint16_t)adc_mean_value(ADC_AMP); // feedback coil
+					cmd.value[4] = (uint16_t)get_voltage_pwm();
+					cmd.value[5] = (int16_t)(((temp_value(0)>temp_value(1))?temp_value(0):temp_value(1)) * 10);
+					cmd.value[6] = (uint16_t)adc_mean_value(ADC_BIAS_CURRENT);
+					cmd.value[7] = (uint16_t)adc_mean_value(ADC_FEEDBACK_CURRENT);
 					cmd.value[8] = (uint16_t)g_stop_mode;
 				}
 				else if (0x0001 == cmd.addr)
@@ -483,7 +467,7 @@ void do_usart(void)
 					cmd.value[8] = (uint16_t)g_temp_stop;
 					cmd.value[9] = (uint16_t)g_temp_alarm;
 					cmd.value[10] = (uint16_t)get_start_power();
-					cmd.value[11] = 0; //(uint16_t)g_power_pwm_shift;
+					cmd.value[11] = (uint16_t)get_start_voltage();
 				}
 				else if (0x0002 == cmd.addr)
 				{
@@ -500,7 +484,7 @@ void do_usart(void)
 				{
 					cmd.addr = 1;
 					
-					cmd.value[0] = (uint16_t)g_bias_pwm_multiplier;
+					cmd.value[0] = 0; //(uint16_t)g_bias_pwm_multiplier;
 				}
 				else if (0x0011 == cmd.addr)
 				{
@@ -524,31 +508,31 @@ void do_usart(void)
 				{
 					cmd.addr = 1;
 					
-					cmd.value[0] = (uint16_t)g_freq_supermax;
+					cmd.value[0] = 0;//(uint16_t)g_freq_supermax;
 				}
 				else if (0x0015 == cmd.addr)
 				{
 					cmd.addr = 1;
 					
-					cmd.value[0] = (uint16_t)g_freq_supermin;
+					cmd.value[0] = 0;//(uint16_t)g_freq_supermin;
 				}
 				else if (0x001C == cmd.addr)
 				{
 					cmd.addr = 1;
 					
-					cmd.value[0] = (uint16_t)(adc[0].bias);
+					cmd.value[0] = (uint16_t)(adc[ADC_BIAS_CURRENT].bias);
 				}
 				else if (0x001D == cmd.addr)
 				{
 					cmd.addr = 1;
 					
-					cmd.value[0] = (uint16_t)(adc[1].bias);
+					cmd.value[0] = (uint16_t)(adc[ADC_FEEDBACK_CURRENT].bias);
 				}
 				else if (0x001E == cmd.addr)
 				{
 					cmd.addr = 1;
 					
-					cmd.value[0] = (uint16_t)(adc[2].bias);
+					cmd.value[0] = (uint16_t)(adc[ADC_AMP].bias);
 				}
 /*				else if (0x001F == cmd.addr)
 				{
@@ -564,6 +548,11 @@ void do_usart(void)
 						cmd.value[i] = (uint16_t)g_din[i];
 					
 				}
+                else if (0x0030 == cmd.addr)
+                {
+                    cmd.addr = 1;
+                    cmd.value[0] = (uint16_t)get_default_real_voltage();
+                }
 				
 				modbus_cmd2msg(&cmd, msg, MODBUS_MAX_MSG_LENGTH);
 				usart1_cmd(msg, 0, 0, 300);
@@ -826,12 +815,12 @@ void do_keep_resonance(void)
 				keep_value = g_keep_amp;
 			}
 		
-			if ((new_value < keep_value) && (get_voltage_pwm() < MAX_VOLTAGE_PWM))
+			if ((new_value < keep_value) && (get_voltage_pwm() < MAX_VOLTAGE))
 			{
 				inc_voltage_pwm();
 				timer_id = start_timer(g_int_timeout + adc_get_timeout(ADC_FEEDBACK_CURRENT) + adc_get_timeout(ADC_AMP));
 			}
-			else if ((new_value > keep_value) && (get_voltage_pwm() > MIN_VOLTAGE_PWM))
+			else if ((new_value > keep_value) && (get_voltage_pwm() > MIN_VOLTAGE))
 			{
 				dec_voltage_pwm();
 				timer_id = start_timer(g_int_timeout + adc_get_timeout(ADC_FEEDBACK_CURRENT) + adc_get_timeout(ADC_AMP));

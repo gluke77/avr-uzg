@@ -8,7 +8,6 @@
 extern uint16_t g_int_timeout;
 
 uint8_t		g_bias_pwm;
-uint16_t	g_bias_pwm_multiplier = 600;
 uint8_t     g_start_bias = 0;
 
 uint8_t	g_adc_bias_multiplier = 50;
@@ -67,7 +66,7 @@ void set_bias_pwm(uint8_t byte)
 	if (MAX_BIAS_PWM < byte)
 		byte = MAX_BIAS_PWM;
 		
-	if ((0 != byte) && (byte < MIN_BIAS_PWM))
+	if ((byte < MIN_BIAS_PWM))
 		byte = MIN_BIAS_PWM;
 
 	cli();
@@ -109,11 +108,6 @@ void dec_bias_pwm()
         else
             stop_bias();
     }
-}
-
-double bias_pwm_to_current(uint8_t pwm)
-{
-	return pwm * (g_bias_pwm_multiplier / 100.) / 255;
 }
 
 double adc_value_to_bias(int16_t adc)
