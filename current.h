@@ -3,8 +3,8 @@
 
 #include "common.h"
 
-#define MAX_BIAS_PWM    (110)
-#define MIN_BIAS_PWM    (50)
+#define MAX_BIAS_PWM    (255)
+#define MIN_BIAS_PWM    (1)
 
 #define DEFAULT_BIAS (100)
 

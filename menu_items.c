@@ -400,6 +400,74 @@ void menu_adc3(void)
 
 void menu_search_auto(void)
 {
+	if (KEY_PRESSED(KEY_ENTER))
+	{
+		if (!g_autosearch_running)
+		{
+			keep_stop();
+		
+			dds_setfreq(g_freq_lower);
+			
+			g_autosearch_running = 1;
+		}
+		
+		CLEAR_KEY_PRESSED(KEY_ENTER);
+	}
+	
+	if (g_autosearch_running)
+	{
+
+		if (KEY_PRESSED(KEY_STOP))
+		{
+			if (IS_UZG_RUN)
+				stop(STOP_BUTTON);
+			else
+			{
+				g_bias_alarm = 0;
+				g_pwm_alarm = 0;
+				stop(STOP_NOT_CHANGE);
+			}
+
+			CLEAR_KEY_PRESSED(KEY_STOP);
+		}
+
+		if (!IS_UZG_RUN)
+		{
+			g_autosearch_running = 0;
+			menu_item_next();
+			return;
+		}
+		
+		
+		if (g_dds_freq < g_freq_upper)
+		{
+            if (((g_dds_freq - g_freq_lower) & 0x00000FFF) == 0)
+            {
+                sprintf(lcd_line1, "SEARCH F:%-5ld                       ", g_dds_freq);
+                do_lcd();
+            }
+
+            g_dds_freq += g_keep_freq_step;
+            dds_setfreq(g_dds_freq);
+		}
+		else
+		{
+            g_bias_alarm = 0;
+            g_pwm_alarm = 0;
+            stop(STOP_NOT_CHANGE);
+			menu_item_next();
+			g_autosearch_running = 0;
+		}
+	}
+	else
+	{
+		sprintf(lcd_line1, "START SEARCH        ");
+		menu_common();
+	}
+}
+
+void menu_search_auto_ori(void)
+{
 	static uint32_t	left_freq_0;
 	static uint32_t	right_freq_0;
 	static uint32_t	freq_step_0 = 10;
@@ -996,9 +1064,9 @@ void reset_settings(void)
 	g_autosearch_mode = AUTOSEARCH_ON;
 #endif //_STARTBUTTON_ENABLED
 
-	g_fault_interrupts_mode = FAULT_INTERRUPTS_ON;
+	g_fault_interrupts_mode = FAULT_INTERRUPTS_OFF;
 	
-	g_keep_freq_step = 5;
+	g_keep_freq_step = 1;
 	g_keep_freq_max_delta = 1;
 	
 	g_baudrate = 9600;

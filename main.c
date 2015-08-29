@@ -141,7 +141,10 @@ int main(void)
 				(IS_UZG_RUN)?"ON  ":"OFF ", (IS_PFC_RUN)?"ON  ":"OFF ");
 
 		do_startbutton();
-		do_lcd();
+        if (!g_autosearch_running)
+        {
+		    do_lcd();
+        }
 		do_temp();
 		do_usart();
 	}

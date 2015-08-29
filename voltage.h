@@ -3,13 +3,13 @@
 
 #include "common.h"
 
-#define MAX_VOLTAGE	    (130)
-#define MIN_VOLTAGE	    (90)   
+#define MAX_VOLTAGE	    (255)
+#define MIN_VOLTAGE	    (1)   
 #define DEFAULT_VOLTAGE (100)
 
 #define MAX_REAL_VOLTAGE	    (200)
 #define MIN_REAL_VOLTAGE        (50)   
-#define DEFAULT_REAL_VOLTAGE    (120)
+#define DEFAULT_REAL_VOLTAGE    (100)
 
 void voltage_pwm_init(void);
 
