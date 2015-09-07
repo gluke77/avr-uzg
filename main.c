@@ -392,7 +392,7 @@ void do_usart(void)
 						
 					case 0x001C:
 						adc[0].bias = (int16_t)value;
-						if (adc[0].bias > 0 || adc[0].bias < 1000)
+						if (adc[0].bias > 1000 || adc[0].bias < 0)
 							adc[0].bias = 511;
 						eeprom_write_word(ADC0_BIAS_ADDR, adc[0].bias);
 						break;

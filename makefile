@@ -298,8 +298,10 @@ AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex
 #AVRDUDE_WRITE_EEPROM = -U eeprom:w:$(TARGET).eep
 
 EFUSE = 0xFF
-HFUSE = 0x99
-LFUSE = 0xEF
+#HFUSE = 0x99
+HFUSE = 0x91# enable eeprom preserve on program
+#LFUSE = 0xEF
+LFUSE = 0x2F# enable brown out @ 4v
 
 AVRDUDE_WRITE_FUSES = -U lfuse:w:$(LFUSE):m -U hfuse:w:$(HFUSE):m -U efuse:w:$(EFUSE):m
 
