@@ -695,6 +695,7 @@ void menu_search_auto(void)
 			if (right_freq_0 < left_freq_0)
 				right_freq_0 = left_freq_0;
 				
+            set_bias_off();
 			dds_setfreq((left_freq_0 + right_freq_0)/2);
 			set_bias_pwm(g_bias_pwm_base + g_bias_pwm_shift);
 			set_power_pwm(g_power_pwm_base + g_power_pwm_shift);
