@@ -58,19 +58,29 @@ void bias_pwm_init(void)
 
 void set_bias_pwm(uint8_t byte)
 {
-	if (g_max_bias_pwm < byte)
+	int step = 0;
+
+    if (g_max_bias_pwm < byte)
 		byte = g_max_bias_pwm;
 		
 	if ((0 != byte) && (byte < g_min_bias_pwm))
 		byte = g_min_bias_pwm;
 
 #ifdef _BIAS_CHANGEABLE
-	cli();
-	OCR1B = (uint16_t)byte;
-	sei();
+    while (g_bias_pwm != byte)
+    {
+        if (g_bias_pwm < byte)
+            g_bias_pwm++;
+        else if (g_bias_pwm > byte)
+            g_bias_pwm--;
+
+        cli();
+	    OCR1B = (uint16_t)g_bias_pwm;
+	    sei();
+        if (g_bias_pwm != byte)
+            _delay_ms(5);
+    }
 #endif _BIAS_CHANGEABLE
-	
-	g_bias_pwm = byte;
 }
 
 void set_bias_off(void)
