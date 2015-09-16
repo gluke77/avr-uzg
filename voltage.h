@@ -7,9 +7,9 @@
 #define MIN_VOLTAGE	    (90)   
 #define DEFAULT_VOLTAGE (100)
 
-#define MAX_REAL_VOLTAGE	    (200)
+#define MAX_REAL_VOLTAGE	    (150)
 #define MIN_REAL_VOLTAGE        (50)   
-#define DEFAULT_REAL_VOLTAGE    (120)
+#define DEFAULT_REAL_VOLTAGE    (130)
 
 void voltage_pwm_init(void);
 

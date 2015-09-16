@@ -1,4 +1,4 @@
-	#if !defined __COMMON_H_INCLUDED_
+#if !defined __COMMON_H_INCLUDED_
 #define __COMMON_H_INCLUDED_
 
 #define FOSC	(F_CPU)
@@ -9,7 +9,7 @@
 #include <inttypes.h>
 #include <util/delay.h>
 
-#define FW_VERSION	("20150916RB")
+#define FW_VERSION	("20150916")
 
 #define TRUE 1
 #define FALSE 0
@@ -219,6 +219,7 @@ extern	char	g_din[DIN_SIZE];
 #define _INT_TIMEOUT_CHANGEABLE
 #define _POWER_CHANGEABLE
 #define _KEEP_CHANGEABLE
+#define _BIAS_CHANGEABLE
 #define _ADC_SHOW
 #undef _STARTBUTTON_ENABLED
 

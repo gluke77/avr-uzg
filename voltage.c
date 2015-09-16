@@ -51,19 +51,43 @@ void voltage_pwm_init(void)
 
 void set_voltage_pwm(uint8_t byte)
 {
-	uint8_t tmp;
-    
+	uint8_t real_voltage_to_set;
+    uint8_t smooth_threshold = 40; //_real_voltage / 3;   
+    uint8_t current_real_voltage = 0; 
+
     if (byte > MAX_VOLTAGE)
         byte = MAX_VOLTAGE;
 
     if (byte < MIN_VOLTAGE)
         byte = MIN_VOLTAGE;
 	
-    tmp = byte + _real_voltage - DEFAULT_VOLTAGE;
+    real_voltage_to_set = (uint8_t)((int)byte + (int)_real_voltage - (int)DEFAULT_VOLTAGE);
+/*
+    if (smooth_threshold > real_voltage_to_set)
+        smooth_threshold = real_voltage_to_set;
+
+    current_real_voltage = OCR2;
+    while (current_real_voltage != real_voltage_to_set)
+    {
+        if (current_real_voltage > real_voltage_to_set)
+            current_real_voltage--;
+        else if (current_real_voltage < smooth_threshold)
+            current_real_voltage = smooth_threshold;
+        else
+            current_real_voltage++;
+
+        cli();
+        OCR2 = current_real_voltage;
+        sei();
+
+        if (current_real_voltage != real_voltage_to_set)
+            _delay_ms(5);
+    }
+*/
     cli();
-    OCR2 = tmp;
+    OCR2 = real_voltage_to_set;
     sei();
-	g_voltage_pwm = byte;
+    g_voltage_pwm = byte;
 }
 
 uint8_t get_voltage_pwm()

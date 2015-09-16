@@ -3,10 +3,10 @@
 
 #include "common.h"
 
-#define MAX_BIAS_PWM    (110)
-#define MIN_BIAS_PWM    (50)
+#define MAX_BIAS_PWM    (100)
+#define MIN_BIAS_PWM    (10)
 
-#define DEFAULT_BIAS (100)
+#define DEFAULT_BIAS (30)
 
 extern uint8_t		g_adc_bias_multiplier;
 

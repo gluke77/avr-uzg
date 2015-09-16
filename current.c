@@ -4,6 +4,7 @@
 #include "adc.h"
 #include "beep.h"
 #include "timer.h"
+#include "common.h"
 
 extern uint16_t g_int_timeout;
 
@@ -63,6 +64,8 @@ uint8_t get_bias_pwm()
 
 void set_bias_pwm(uint8_t byte)
 {
+    uint16_t new_value = 0;
+
 	if (MAX_BIAS_PWM < byte)
 		byte = MAX_BIAS_PWM;
 		
@@ -77,8 +80,9 @@ void set_bias_pwm(uint8_t byte)
         else if (g_bias_pwm > byte)
             g_bias_pwm--;
 
+        new_value = (g_bias_pwm << 1) + (g_bias_pwm >> 1); // g_bias_pwm * 2.5 : 100% = 250 pwm = 8A @ 285V
         cli();
-	    OCR1B = (uint16_t)g_bias_pwm;
+	    OCR1B = new_value;
 	    sei();
         if (g_bias_pwm != byte)
             _delay_ms(5);
@@ -103,8 +107,7 @@ void inc_bias_pwm()
 {
     if ((g_bias_pwm < MAX_BIAS_PWM) && IS_UZG_RUN)
     {
-        g_bias_pwm++;
-        set_bias_pwm(g_bias_pwm);
+        set_bias_pwm(g_bias_pwm + 1);
     }
 }
 
@@ -112,9 +115,8 @@ void dec_bias_pwm()
 {
     if ((g_bias_pwm > MIN_BIAS_PWM) && IS_UZG_RUN)
     {
-        g_bias_pwm--;
-        if (g_bias_pwm)
-            set_bias_pwm(g_bias_pwm);
+        if (g_bias_pwm > 1)
+            set_bias_pwm(g_bias_pwm - 1);
         else
             stop_bias();
     }
