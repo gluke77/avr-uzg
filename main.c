@@ -749,7 +749,6 @@ void do_keep_resonance(void)
 		timer_id = start_timer(g_int_timeout + adc_get_timeout(ADC_FEEDBACK_CURRENT));
 		beep_ms(100);
 	}
-//	else if (0 == timer_value(timer_id))
 	else if ((0 == timer_value(timer_id)) || (0 == timer_id))
 	{
 		stop_timer(timer_id);

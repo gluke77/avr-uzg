@@ -9,7 +9,7 @@
 #include <inttypes.h>
 #include <util/delay.h>
 
-#define FW_VERSION	("20150916FF")
+#define FW_VERSION	("20150916RB")
 
 #define TRUE 1
 #define FALSE 0

@@ -495,7 +495,9 @@ void menu_search_auto(void)
 			if (right_freq_0 < left_freq_0)
 				right_freq_0 = left_freq_0;
 				
+            stop_bias();
 			dds_setfreq((left_freq_0 + right_freq_0)/2);
+            set_bias_pwm(get_start_bias());
 			menu_item_next();
 			keep_start();
 			
