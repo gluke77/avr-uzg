@@ -17,7 +17,7 @@ void set_power_on(void);
 void set_power_off(void);
 uint8_t is_power_on(void);
 
-#define POWER_PWM_MAX	(99)
-#define POWER_PWM_MIN	(29)
+#define POWER_PWM_MAX	(9)
+#define POWER_PWM_MIN	(6)
 
 #endif /* _POWER_INCLUDED */

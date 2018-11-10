@@ -353,7 +353,7 @@ void menu_current(void)
 
 void menu_power(void)
 {
-	sprintf(lcd_line1, "POWER= %2d%%               ", g_power_pwm + 1);
+	sprintf(lcd_line1, "POWER= %2d%%               ", (g_power_pwm + 1) * 10);
 
 	if (KEY_PRESSED(KEY_RIGHT))
 	{
@@ -472,11 +472,11 @@ void menu_bias_pwm_shift(void)
 
 void menu_power_pwm_base(void)
 {
-	sprintf(lcd_line1, "START POWER= %2d%%     ", g_power_pwm_base + 1);
+	sprintf(lcd_line1, "START POWER= %2d%%     ", (g_power_pwm_base + 1) * 10);
 
 	if (KEY_PRESSED(KEY_RIGHT))
 	{
-		if (g_max_power_pwm - g_power_pwm_shift < g_power_pwm_base)
+		if (g_max_power_pwm - g_power_pwm_shift <= g_power_pwm_base)
 			g_power_pwm_base = g_max_power_pwm - g_power_pwm_shift;
 		else
 			g_power_pwm_base++;
@@ -486,7 +486,7 @@ void menu_power_pwm_base(void)
 
 	if (KEY_PRESSED(KEY_LEFT))
 	{
-		if (g_power_pwm_base < g_min_power_pwm)
+		if (g_power_pwm_base <= g_min_power_pwm)
 			g_power_pwm_base = g_min_power_pwm;
 		else
 			g_power_pwm_base--;
@@ -500,11 +500,11 @@ void menu_power_pwm_base(void)
 
 void menu_power_pwm_shift(void)
 {
-	sprintf(lcd_line1, "ADD. POWER= %2d%%       ", g_power_pwm_shift);
+	sprintf(lcd_line1, "ADD. POWER= %2d%%       ", g_power_pwm_shift * 10);
 
 	if (KEY_PRESSED(KEY_RIGHT))
 	{
-		if (g_max_power_pwm - g_power_pwm_shift < g_power_pwm_base)
+		if (g_max_power_pwm - g_power_pwm_shift <= g_power_pwm_base)
 			g_power_pwm_shift = g_max_power_pwm - g_power_pwm_base;
 		else
 			g_power_pwm_shift++;
@@ -548,7 +548,7 @@ void menu_max_power_pwm(void)
 		CLEAR_KEY_PRESSED(KEY_RIGHT);
 	}
 		
-	sprintf(lcd_line1, "MAX POWER= %d%%       ", g_max_power_pwm + 1);
+	sprintf(lcd_line1, "MAX POWER= %d%%       ", (g_max_power_pwm + 1) * 10);
 	
 	menu_common();
 }
@@ -576,7 +576,7 @@ void menu_min_power_pwm(void)
 		CLEAR_KEY_PRESSED(KEY_RIGHT);
 	}
 		
-	sprintf(lcd_line1, "MIN POWER= %d%%         ", g_min_power_pwm + 1);
+	sprintf(lcd_line1, "MIN POWER= %d%%         ", (g_min_power_pwm + 1) * 10);
 	
 	menu_common();
 }
@@ -718,7 +718,6 @@ void menu_adc2(void)
 void menu_adc3(void)
 {
 	sprintf(lcd_line1, "ADC3:%-15d", adc_mean_value(3));
-	
 	menu_common();
 }
 
@@ -1696,7 +1695,7 @@ void reset_settings(void)
 	
 	set_pfc_mode(DEFAULT_PFC_MODE);
 	
-	g_power_pwm_base = 95;
+	g_power_pwm_base = 8;
 	g_power_pwm_shift = 0;
 
 	g_max_power_pwm = POWER_PWM_MAX;
@@ -1836,7 +1835,7 @@ void check_settings(void)
 #else // _POWER_CHANGEABLE
 	g_max_power_pwm = POWER_PWM_MAX;
 	g_min_power_pwm = POWER_PWM_MIN;
-	g_power_pwm_base = 95;
+	g_power_pwm_base = 8;
 	g_power_pwm_shift = 0;
 #endif // _POWER_CHANGEABLE
 		

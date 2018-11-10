@@ -64,7 +64,7 @@ void power_pwm_init(void)
 	CLEARBIT(DDRE, PE6);
 	
 	cli();
-	OCR3A = 99;
+	OCR3A = 9;
 	OCR3B = 0;
 	sei();
 }
