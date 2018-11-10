@@ -4,7 +4,7 @@
 #include "common.h"
 
 #define MAX_POWER_PWM	    (9)
-#define MIN_POWER_PWM	    (6)   
+#define MIN_POWER_PWM	    (2)   
 #define DEFAULT_POWER_PWM   (8)
 #define POWER_BIAS          (-1)
 
