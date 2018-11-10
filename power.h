@@ -3,9 +3,9 @@
 
 #include "common.h"
 
-#define MAX_POWER_PWM	    (100)
-#define MIN_POWER_PWM	    (30)   
-#define DEFAULT_POWER_PWM   (100)
+#define MAX_POWER_PWM	    (9)
+#define MIN_POWER_PWM	    (6)   
+#define DEFAULT_POWER_PWM   (8)
 #define POWER_BIAS          (-1)
 
 void power_pwm_init(void);

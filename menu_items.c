@@ -276,7 +276,7 @@ void menu_current(void)
 
 void menu_power(void)
 {
-	sprintf(lcd_line1, "POWER= %2d%%               ", get_power_pwm());
+	sprintf(lcd_line1, "POWER= %2d%%               ", get_power_pwm() * 10);
 
 	if (KEY_PRESSED(KEY_RIGHT))
 	{
@@ -326,7 +326,7 @@ void menu_start_bias(void)
 
 void menu_start_power(void)
 {
-	sprintf(lcd_line1, "START POWER= %2d%%     ", get_start_power());
+	sprintf(lcd_line1, "START POWER= %2d%%     ", get_start_power() * 10);
 
 	if (KEY_PRESSED(KEY_RIGHT))
 	{
@@ -394,7 +394,6 @@ void menu_adc2(void)
 void menu_adc3(void)
 {
 	sprintf(lcd_line1, "ADC3:%-15d", adc_mean_value(3));
-	
 	menu_common();
 }
 
