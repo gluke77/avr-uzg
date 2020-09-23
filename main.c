@@ -634,11 +634,15 @@ void do_timer(void)
 void uzg_run(void)
 {
 	dds_setfreq(g_dds_freq);
-	set_power_on();
+	_delay_ms(50);
+
+    set_power_on();
 	set_power_pwm(g_power_pwm_base);
+	_delay_ms(50);
 	
 #ifdef _BIAS_CHANGEABLE
 	set_bias_pwm(g_bias_pwm_base);
+	_delay_ms(50);
 #endif // _BIAS_CHANGEABLE
 }
 
@@ -688,14 +692,14 @@ void start(void)
 		return;
 	}
 
+	uzg_run();
+
 	if (PFC_OFF != g_pfc_mode)
 	{
 		PFC_RUN;
 		_delay_ms(10);
 	}
 	
-	uzg_run();
-
 	if (AUTOSEARCH_ON == g_autosearch_mode)
 	{
 		g_menu_mode = MENU_MODE_WORK;
