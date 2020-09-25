@@ -16,7 +16,6 @@
 #include "temp.h"
 #include "usart.h"
 #include "beep.h"
-#include "voltage.h"
 
 #define FAST_MODE_COUNT		(75)
 #define FAST_MODE_DELAY		(500)
@@ -51,9 +50,6 @@ void menu_items_init(void)
 	menu_items[MENU_MODE_WORK][idx++] = menu_power;
 #endif // _POWER_CHANGEABLE
 	menu_items[MENU_MODE_WORK][idx++] = menu_current;	
-#ifdef _VOLTAGE_CHANGEABLE
-	menu_items[MENU_MODE_WORK][idx++] = menu_voltage;
-#endif // _VOLTAGE_CHANGEABLE
 //	menu_items[MENU_MODE_WORK][idx++] = menu_amp;
 	menu_items[MENU_MODE_WORK][idx++] = menu_temp;
 	menu_items[MENU_MODE_WORK][idx++] = menu_temp2;
@@ -79,10 +75,6 @@ void menu_items_init(void)
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_freq_lower;
 
 	menu_items[MENU_MODE_SETTINGS][idx++] = menu_start_bias;
-
-#ifdef _VOLTAGE_CHANGEABLE
-	menu_items[MENU_MODE_SETTINGS][idx++] = menu_start_voltage;
-#endif // _VOLTAGE_CHANGEABLE
 
 
 #ifdef _POWER_CHANGEABLE	
@@ -295,13 +287,6 @@ void menu_power(void)
 	menu_common();
 }
 
-void menu_voltage(void)
-{
-	sprintf(lcd_line1, "VOLTAGE: %d%%               ", get_voltage_pwm());
-
-	menu_common();
-}
-
 void menu_start_bias(void)
 {
 	sprintf(lcd_line1, "START CURRENT= %d%%    ", get_start_bias());
@@ -339,27 +324,6 @@ void menu_start_power(void)
 	{
         dec_start_power();
 			
-		CLEAR_KEY_PRESSED(KEY_LEFT);
-	}
-
-	menu_common();
-}
-
-void menu_start_voltage(void)
-{
-	sprintf(lcd_line1, "START VOLTAGE= %d%%     ", get_start_voltage());
-
-	if (KEY_PRESSED(KEY_RIGHT))
-	{
-	    inc_start_voltage();
-
-		CLEAR_KEY_PRESSED(KEY_RIGHT);
-	}
-
-	if (KEY_PRESSED(KEY_LEFT))
-	{
-	    dec_start_voltage();
-
 		CLEAR_KEY_PRESSED(KEY_LEFT);
 	}
 
@@ -570,8 +534,8 @@ void menu_search(void)
 	if (curr < 0.)
 		curr = 0.;
 	
-	sprintf(lcd_line1, "F=%-5ld C:%-4.2f V:%d%%     ",
-		g_dds_freq, curr, get_voltage_pwm());
+	sprintf(lcd_line1, "F=%-5ld C:%-4.2f T:%-3.2f     ",
+		g_dds_freq, curr, get_bias_adc());
 	menu_common();
 }
 
@@ -941,9 +905,6 @@ void loadFromEE(void)
 	g_startbutton_mode = eeprom_read_byte(STARTBUTTON_MODE_ADDR);
 	
 	g_fault_interrupts_mode = eeprom_read_byte(FAULT_INTERRUPTS_MODE_ADDR);
-
-    set_start_voltage(eeprom_read_byte(VOLTAGE_PWM_BASE_ADDR));
-    set_default_real_voltage(eeprom_read_byte(DEFAULT_VOLTAGE_ADDR));
 }
 
 void storeToEE(void)
@@ -973,9 +934,6 @@ void storeToEE(void)
 	eeprom_write_byte(FAULT_INTERRUPTS_MODE_ADDR, g_fault_interrupts_mode);
 	
 	eeprom_write_byte(STARTBUTTON_MODE_ADDR, g_startbutton_mode);
-	
-    eeprom_write_byte(VOLTAGE_PWM_BASE_ADDR, get_start_voltage());
-    eeprom_write_byte(DEFAULT_VOLTAGE_ADDR, get_default_real_voltage());
 }
 
 void reset_settings(void)
@@ -1020,8 +978,6 @@ void reset_settings(void)
 #else 
 	g_startbutton_mode = STARTBUTTON_OFF;
 #endif //_STARTBUTTON_ENABLED
-    reset_start_voltage();
-    reset_default_real_voltage();
 }
 
 void check_settings(void)
@@ -1131,8 +1087,6 @@ void check_settings(void)
 	g_startbutton_mode = STARTBUTTON_OFF;
 #endif // ! _STARTBUTTON_ENABLED
 		
-    validate_start_voltage();
-    validate_default_real_voltage();
 }
 
 void menu_int_timeout(void)

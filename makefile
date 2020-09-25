@@ -96,8 +96,7 @@ SRC = main.c \
 	crc8.c \
 	ds18x20.c \
 	onewire.c \
-	startbutton.c \
-    voltage.c
+	startbutton.c
 	
 # List C++ source files here. (C dependencies are automatically generated.)
 CPPSRC = 

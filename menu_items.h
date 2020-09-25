@@ -11,7 +11,6 @@ void menu_freq(void);
 void menu_freq_step(void);
 void menu_current(void);
 void menu_power(void);
-void menu_voltage(void);
 
 void menu_adc0(void);
 void menu_adc1(void);
@@ -44,7 +43,6 @@ void menu_reset_settings(void);
 
 void menu_start_bias(void);
 void menu_start_power(void);
-void menu_start_voltage(void);
 
 void menu_int_timeout(void);
 

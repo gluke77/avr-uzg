@@ -19,7 +19,6 @@
 #include "power.h"
 #include "temp.h"
 #include "startbutton.h"
-#include "voltage.h"
 
 fault_interrupts_mode_e	g_fault_interrupts_mode = FAULT_INTERRUPTS_OFF; 
 stop_mode_e				g_stop_mode = STOP_BUTTON;
@@ -82,7 +81,6 @@ int main(void)
 	beep_init();
 	bias_pwm_init();
 	power_pwm_init();
-    voltage_pwm_init();
 	kbd_init();
 	startbutton_init();
 	lcd_init();
@@ -289,7 +287,7 @@ void do_usart(void)
 						break;
 #endif // _POWER_CHANGEABLE
 					case 0x0010:
-						set_start_voltage((uint8_t)value);
+                        // set_start_voltage((uint8_t)value);
 						break;
 					case 0x0011:
 						//g_supermax_bias_pwm = (uint8_t)value;
@@ -403,11 +401,6 @@ void do_usart(void)
 						eeprom_write_byte(DIN_ADDR + 15, g_din[15]);
 						break;
 
-                    case 0x0030:
-                        set_default_real_voltage((uint8_t)value);
-                        eeprom_write_byte(DEFAULT_VOLTAGE_ADDR, get_default_real_voltage());
-                        break;
-
 					case 0xFFFF:
 						check_settings();
 						storeToEE();
@@ -446,10 +439,10 @@ void do_usart(void)
 					cmd.value[1] = (uint16_t)g_dds_freq;
 					cmd.value[2] = (uint16_t)get_bias_pwm();
 					cmd.value[3] = (uint16_t)get_power_pwm();
-					cmd.value[4] = (uint16_t)get_voltage_pwm();
-					cmd.value[5] = (int16_t)(((temp_value(0)>temp_value(1))?temp_value(0):temp_value(1)) * 10);
-					cmd.value[6] = (uint16_t)adc_mean_value(ADC_BIAS_CURRENT);
-					cmd.value[7] = (uint16_t)adc_mean_value(ADC_FEEDBACK_CURRENT);
+					cmd.value[4] = (int16_t)(((temp_value(0)>temp_value(1))?temp_value(0):temp_value(1)) * 10);
+					cmd.value[5] = (uint16_t)adc_mean_value(ADC_BIAS_CURRENT);
+					cmd.value[6] = (uint16_t)adc_mean_value(ADC_FEEDBACK_CURRENT);
+					cmd.value[7] = (uint16_t)adc_mean_value(ADC_AMP);
 					cmd.value[8] = (uint16_t)g_stop_mode;
 				}
 				else if (0x0001 == cmd.addr)
@@ -466,8 +459,8 @@ void do_usart(void)
 					cmd.value[7] = (uint16_t)g_keep_freq_max_delta;
 					cmd.value[8] = (uint16_t)g_temp_stop;
 					cmd.value[9] = (uint16_t)g_temp_alarm;
-					cmd.value[10] = (uint16_t)get_start_power();
-					cmd.value[11] = (uint16_t)get_start_voltage();
+					cmd.value[10] = 0; //was (uint16_t)get_start_power();
+					cmd.value[11] = 0; //was (uint16_t)get_start_voltage();
 				}
 				else if (0x0002 == cmd.addr)
 				{
@@ -548,11 +541,6 @@ void do_usart(void)
 						cmd.value[i] = (uint16_t)g_din[i];
 					
 				}
-                else if (0x0030 == cmd.addr)
-                {
-                    cmd.addr = 1;
-                    cmd.value[0] = (uint16_t)get_default_real_voltage();
-                }
 				
 				modbus_cmd2msg(&cmd, msg, MODBUS_MAX_MSG_LENGTH);
 				usart1_cmd(msg, 0, 0, 300);
@@ -570,14 +558,12 @@ void uzg_run(void)
 {
 	dds_setfreq(g_dds_freq);
 	set_power_on();
-    set_voltage_on();
 }
 
 void uzg_stop(void)
 {
 	stop_bias();
 	set_power_off();
-    set_voltage_off();
 }
 
 void start(void)
@@ -692,7 +678,7 @@ void do_keep_resonance(void)
 	static int32_t		integral;
 	static int32_t		sum_value;
 	static	uint8_t		looking_up_freq;
-	static	uint8_t		looking_up_voltage_pwm;
+	static	uint8_t		looking_up_bias_pwm;
 	static uint8_t		delta_zero_count;
 	
 	int16_t				amp;
@@ -709,7 +695,7 @@ void do_keep_resonance(void)
 		}
 
 		looking_up_freq = 0;
-		looking_up_voltage_pwm = 0;
+		looking_up_bias_pwm = 0;
 		return;
 	}
 	
@@ -718,7 +704,7 @@ void do_keep_resonance(void)
 	amp = adc_mean_value(ADC_AMP);
 	sei();
 	
-	if ((!looking_up_freq) && (!looking_up_voltage_pwm))
+	if ((!looking_up_freq) && (!looking_up_bias_pwm))
 	{
 		if (0 != timer_id)
 		{
@@ -743,7 +729,7 @@ void do_keep_resonance(void)
 		}
 		else
 		{
-			looking_up_voltage_pwm = 1;
+			looking_up_bias_pwm = 1;
 		}
 		
 		timer_id = start_timer(g_int_timeout + adc_get_timeout(ADC_FEEDBACK_CURRENT));
@@ -790,7 +776,7 @@ void do_keep_resonance(void)
 					
 				if (DELTA_ZERO_COUNT < delta_zero_count)
 				{
-					looking_up_voltage_pwm = 1;
+					looking_up_bias_pwm = 1;
 					delta_zero_count = 0;
 				}
 			}
@@ -801,7 +787,7 @@ void do_keep_resonance(void)
 			}
 		}
 		
-		if (looking_up_voltage_pwm)
+		if (looking_up_bias_pwm)
 		{
 			if (KEEP_CURRENT == g_current_keep_mode)
 			{
@@ -814,19 +800,19 @@ void do_keep_resonance(void)
 				keep_value = g_keep_amp;
 			}
 		
-			if ((new_value < keep_value) && (get_voltage_pwm() < MAX_VOLTAGE))
+			if ((new_value < keep_value) && (get_bias_pwm() < MAX_BIAS_PWM))
 			{
-				inc_voltage_pwm();
+				inc_bias_pwm();
 				timer_id = start_timer(g_int_timeout + adc_get_timeout(ADC_FEEDBACK_CURRENT) + adc_get_timeout(ADC_AMP));
 			}
-			else if ((new_value > keep_value) && (get_voltage_pwm() > MIN_VOLTAGE))
+			else if ((new_value > keep_value) && (get_bias_pwm() > MIN_BIAS_PWM))
 			{
-				dec_voltage_pwm();
+				dec_bias_pwm();
 				timer_id = start_timer(g_int_timeout + adc_get_timeout(ADC_FEEDBACK_CURRENT) + adc_get_timeout(ADC_AMP));
 			}
 			else
 			{
-				looking_up_voltage_pwm = 0;
+				looking_up_bias_pwm = 0;
 				g_keep_current = current;
 			}
 		}
