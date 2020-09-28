@@ -268,7 +268,7 @@ void menu_current(void)
 
 void menu_power(void)
 {
-	sprintf(lcd_line1, "POWER= %2d%%               ", get_power_pwm() * 10);
+	sprintf(lcd_line1, "POWER= %3d%%               ", get_power_pwm() * 10);
 
 	if (KEY_PRESSED(KEY_RIGHT))
 	{
@@ -311,7 +311,7 @@ void menu_start_bias(void)
 
 void menu_start_power(void)
 {
-	sprintf(lcd_line1, "START POWER= %2d%%     ", get_start_power() * 10);
+	sprintf(lcd_line1, "START POWER= %3d%%     ", get_start_power() * 10);
 
 	if (KEY_PRESSED(KEY_RIGHT))
 	{

@@ -9,7 +9,7 @@
 #include <inttypes.h>
 #include <util/delay.h>
 
-#define FW_VERSION	("20200926")
+#define FW_VERSION	("20200928")
 
 #define TRUE 1
 #define FALSE 0
@@ -215,7 +215,7 @@ extern	char	g_din[DIN_SIZE];
 #define DEFAULT_VOLTAGE_ADDR    (86)
 // next addr 87
 
-#undef _NARROW_FREQ
+#define _NARROW_FREQ
 #define _INT_TIMEOUT_CHANGEABLE
 #define _POWER_CHANGEABLE
 #define _KEEP_CHANGEABLE
@@ -227,7 +227,7 @@ extern	char	g_din[DIN_SIZE];
 #undef _MAX_VOLTAGE_CHANGEABLE
 #undef _MIN_VOLTAGE_CHANGEABLE
 
-#define DEFAULT_INT_TIMEOUT			(100)
+#define DEFAULT_INT_TIMEOUT			(400)
 
 #define DEFAULT_PFC_MODE			(PFC_AUTO)
 
